@@ -4,6 +4,7 @@ use num::BigUint;
 
 use crate::{
     game::{Game, GameStoreExt},
+    ui::ProgressBar,
     SECONDS_PER_TICK,
 };
 
@@ -18,8 +19,8 @@ pub struct Energy {
 impl Energy {
     pub fn new_game() -> Self {
         Self {
-            energy: BigUint::from(0u32),
-            max_energy: BigUint::from(10u32),
+            energy: BigUint::from(0u8),
+            max_energy: BigUint::from(10u8),
             energy_progress: 0.0,
             energy_progress_per_tick: SECONDS_PER_TICK,
         }
@@ -40,6 +41,11 @@ impl<Lens> Store<Energy, Lens> {
             *self.energy_progress().write() = 0.0;
         }
     }
+
+    fn rebirth(&mut self) {
+        self.energy().set(0u8.into());
+        self.energy_progress().set(0.0);
+    }
 }
 
 #[component]
@@ -53,9 +59,13 @@ pub fn EnergyView() -> Element {
     let energy_progress_percent = use_memo(move || format!("{:.0}%", energy_progress * 100.0));
 
     rsx! {
-        div {
+        div { class: "horizontal",
             span { "Energy: {current_energy}/{max_energy}" }
-            progress { value: energy_progress, max: 1.0, "Energy Progress: {energy_progress_percent}" }
+            ProgressBar {
+                progress: energy_progress,
+                text: "Energy Progress: {energy_progress_percent}",
+            }
+
         }
     }
 }

@@ -14,6 +14,7 @@ const TICKS_PER_SECOND: f64 = 1.0 / TICK_RATE.as_secs_f64();
 const SECONDS_PER_TICK: f64 = TICK_RATE.as_secs_f64();
 
 mod game;
+mod ui;
 
 fn main() {
     dioxus::launch(App);

@@ -6,15 +6,82 @@ body {
     margin: 20px;
 }
 
-#hero {
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
+button {
+    background-color: #1f1f1f;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    font-size: large;
+    margin: 10px;
 }
 
-#links {
+button:hover {
+    background-color: #333333;
+    cursor: pointer;
+}
+
+button:active {
+    background-color: #555555;
+}
+
+button:disabled {
+    background-color: #555555;
+    cursor: not-allowed;
+}
+
+button:disabled:hover {
+    background-color: #555555;
+}
+
+span {
+    margin: 5px;
+}
+
+progress {
+    height: 24px;
+    padding: 1px;
+    margin: 4px;
+}
+
+div.vertical {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    flex-grow: 1;
+}
+
+div.horizontal {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    flex-grow: 1;
+}
+
+div.progress-bar {
+    flex-grow: 1;
+    position: relative;
+    height: 28px;
+    margin: 5px;
+    background-color: #4b742d;
+}
+
+div.progress-bar-fill {
+    position: absolute;
+    height: 100%;
+    background-color: #89ac70;
+}
+
+span.progress-bar-text {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    margin: 0px;
+    text-align: center;
+    line-height: 28px;
+}
+
+/*#links {
     width: 400px;
     text-align: left;
     font-size: x-large;
@@ -36,11 +103,4 @@ body {
 #links a:hover {
     background-color: #1f1f1f;
     cursor: pointer;
-}
-
-#header {
-    max-width: 1200px;
-}
-
-
-
+}*/

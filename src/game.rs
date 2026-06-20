@@ -23,13 +23,26 @@ impl<Lens> Store<Game, Lens> {
     fn update(&mut self) {
         self.energy().update();
     }
+
+    fn rebirth(&mut self) {
+        self.energy().rebirth();
+    }
 }
 
 #[component]
 pub fn GameView() -> Element {
-    // let game = use_context::<Store<Game>>();
+    let mut game = use_context::<Store<Game>>();
 
     rsx! {
-        EnergyView {}
+        div { class: "vertical",
+            EnergyView {}
+            button {
+                onclick: move |event| {
+                    event.prevent_default();
+                    game.rebirth();
+                },
+                "Rebirth"
+            }
+        }
     }
 }
