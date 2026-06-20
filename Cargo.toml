@@ -7,7 +7,13 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-dioxus = { version = "0.7.1", features = [] }
+# UI
+dioxus = { version = "0.7.9", features = [] }
+dioxus-stores = { version = "0.7.9" }
+dioxus-sdk = { version = "0.7.0", features = ["time"] }
+
+# Game
+num = "0.4.3"
 
 [features]
 default = ["web"]
