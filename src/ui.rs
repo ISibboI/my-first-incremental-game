@@ -1,7 +1,5 @@
-use std::ops::{AddAssign, SubAssign};
-
 use dioxus::prelude::*;
-use num::{BigUint, Integer, ToPrimitive};
+use num::{BigUint, ToPrimitive};
 
 #[component]
 pub fn ProgressBar(progress: ReadSignal<f64>, text: ReadSignal<String>) -> Element {
@@ -47,7 +45,7 @@ pub fn BigUintToU32ShiftButton(
 
                 let actual_amount = amount.read().clone().min(from.read().clone());
                 from.with_mut(|from| *from -= &actual_amount);
-                to.with_mut(|to| *to = *to + actual_amount.to_u32().unwrap());
+                to.with_mut(|to| *to += actual_amount.to_u32().unwrap());
             },
             "{text}"
         }

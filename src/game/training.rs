@@ -1,6 +1,6 @@
 use dioxus::prelude::*;
 use dioxus_stores::Store;
-use num::{BigUint, One, ToPrimitive};
+use num::ToPrimitive;
 
 use crate::{
     game::{energy::EnergyStoreExt, Game, GameStoreExt},
@@ -37,24 +37,24 @@ impl Training {
             hitpoints: 10.0,
 
             attack_skills: vec![
-                Skill::new_game("Push ups", 1000, 1.0, true),
-                Skill::new_game("Punch", 3000, 10.0, false),
-                Skill::new_game("Sword", 10000, 100.0, false),
-                Skill::new_game("Basic combo", 30000, 1000.0, false),
+                Skill::new_game("Strength", 2000, 1.0, true),
+                Skill::new_game("Punch", 10000, 10.0, false),
+                Skill::new_game("Sword", 30000, 100.0, false),
+                Skill::new_game("Basic combo", 60000, 1000.0, false),
                 Skill::new_game("Awesome combo", 100000, 10000.0, false),
             ],
             defense_skills: vec![
-                Skill::new_game("Flexibility", 1000, 1.0, true),
-                Skill::new_game("Evasion", 3000, 10.0, false),
-                Skill::new_game("Limbo", 10000, 100.0, false),
-                Skill::new_game("Parry", 30000, 1000.0, false),
+                Skill::new_game("Flexibility", 2000, 1.0, true),
+                Skill::new_game("Evasion", 10000, 10.0, false),
+                Skill::new_game("Limbo", 30000, 100.0, false),
+                Skill::new_game("Parry", 60000, 1000.0, false),
                 Skill::new_game("Catch arrows", 100000, 10000.0, false),
             ],
             hitpoint_skills: vec![
-                Skill::new_game("Healthy nutrition", 1000, 10.0, true),
-                Skill::new_game("Thicker skin", 3000, 100.0, false),
-                Skill::new_game("Pain endurance", 10000, 1000.0, false),
-                Skill::new_game("Sleep on bed of nails", 30000, 10000.0, false),
+                Skill::new_game("Healthy nutrition", 2000, 10.0, true),
+                Skill::new_game("Thicker skin", 10000, 100.0, false),
+                Skill::new_game("Pain endurance", 30000, 1000.0, false),
+                Skill::new_game("Sleep on bed of nails", 60000, 10000.0, false),
                 Skill::new_game("Simply don't die", 100000, 100000.0, false),
             ],
         }
@@ -83,6 +83,7 @@ impl Skill {
 #[store(pub)]
 impl<Lens> Store<Training, Lens> {
     fn update(&mut self) {
+        // Update skills.
         for mut skill in self
             .attack_skills()
             .iter()
@@ -92,6 +93,43 @@ impl<Lens> Store<Training, Lens> {
             skill.update();
         }
 
+        // Unlock skills.
+        const UNLOCK_REQUIREMENT: u64 = 5000;
+        let mut previous_level = 0;
+        for (index, skill) in self.attack_skills().iter().enumerate() {
+            if !*skill.unlocked().read() {
+                let required_level = UNLOCK_REQUIREMENT * index as u64;
+                if previous_level >= required_level {
+                    skill.unlocked().set(true);
+                    break;
+                }
+            }
+            previous_level = *skill.level().read();
+        }
+        let mut previous_level = 0;
+        for (index, skill) in self.defense_skills().iter().enumerate() {
+            if !*skill.unlocked().read() {
+                let required_level = UNLOCK_REQUIREMENT * index as u64;
+                if previous_level >= required_level {
+                    skill.unlocked().set(true);
+                    break;
+                }
+            }
+            previous_level = *skill.level().read();
+        }
+        let mut previous_level = 0;
+        for (index, skill) in self.hitpoint_skills().iter().enumerate() {
+            if !*skill.unlocked().read() {
+                let required_level = UNLOCK_REQUIREMENT * index as u64;
+                if previous_level >= required_level {
+                    skill.unlocked().set(true);
+                    break;
+                }
+            }
+            previous_level = *skill.level().read();
+        }
+
+        // Update stats.
         self.attack().set(
             1.0 + self
                 .attack_skills()
@@ -120,13 +158,15 @@ impl<Lens> Store<Training, Lens> {
         self.defense().set(1.0);
         self.hitpoints().set(10.0);
 
-        for mut skill in self
+        for (index, mut skill) in self
             .attack_skills()
             .iter()
-            .chain(self.defense_skills().iter())
-            .chain(self.hitpoint_skills().iter())
+            .enumerate()
+            .chain(self.defense_skills().iter().enumerate())
+            .chain(self.hitpoint_skills().iter().enumerate())
         {
             skill.rebirth();
+            skill.unlocked().set(index == 0);
         }
     }
 }
@@ -160,10 +200,6 @@ pub fn TrainingView() -> Element {
     let training = game.training();
 
     let energy_increment = game.energy_increment();
-
-    let attack = training.attack();
-    let defense = training.defense();
-    let hitpoints = training.hitpoints();
 
     rsx! {
         div { class: "vertical", style: "padding: 10px;",
