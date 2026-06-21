@@ -10,6 +10,7 @@ const MAIN_CSS: Asset = asset!("/assets/main.css");
 const TAILWIND_CSS: Asset = asset!("/assets/tailwind.css");
 
 const TICK_RATE: Duration = Duration::from_millis(20);
+#[expect(dead_code)]
 const TICKS_PER_SECOND: f64 = 1.0 / TICK_RATE.as_secs_f64();
 const SECONDS_PER_TICK: f64 = TICK_RATE.as_secs_f64();
 
