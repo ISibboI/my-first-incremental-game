@@ -11,6 +11,7 @@ use crate::{
 #[derive(Clone, Store)]
 pub struct Energy {
     pub energy: BigUint,
+    pub idle_energy: BigUint,
     pub max_energy: BigUint,
 
     pub energy_progress: f64,
@@ -25,6 +26,7 @@ impl Energy {
     pub fn new_game() -> Self {
         Self {
             energy: BigUint::from(0u8),
+            idle_energy: BigUint::from(0u8),
             max_energy: BigUint::from(10u8),
 
             energy_progress: 0.0,
@@ -49,6 +51,8 @@ impl<Lens> Store<Energy, Lens> {
         if *self.energy_progress().read() >= 1.0 - 1e-6 {
             if *self.energy().read() < *self.max_energy().read() {
                 self.energy().with_mut(|energy| *energy += 1u8);
+                self.idle_energy()
+                    .with_mut(|idle_energy| *idle_energy += 1u8);
             }
             self.energy_progress().set(0.0);
 
@@ -70,6 +74,7 @@ impl<Lens> Store<Energy, Lens> {
 
     fn rebirth(&mut self) {
         self.energy().set(0u8.into());
+        self.idle_energy().set(0u8.into());
         let max_energy_after_rebirth = self.max_energy_after_rebirth().read().clone();
         self.max_energy().set(max_energy_after_rebirth);
 
@@ -85,6 +90,7 @@ pub fn EnergyView() -> Element {
     let energy = game.energy();
 
     let current_energy = energy.energy();
+    let idle_energy = energy.idle_energy();
     let max_energy = energy.max_energy();
     let energy_progress = energy.energy_progress();
     let energy_progress_percent = use_memo(move || format!("{:.0}%", energy_progress * 100.0));
@@ -96,7 +102,7 @@ pub fn EnergyView() -> Element {
     rsx! {
         div { class: "horizontal",
             div { class: "vertical",
-                span { "Energy: {current_energy}/{max_energy}" }
+                span { "Energy: {current_energy}/{max_energy}; Idle: {idle_energy}" }
                 span { "Max energy after rebirth: {max_energy_after_rebirth}" }
             }
             div { class: "vertical",

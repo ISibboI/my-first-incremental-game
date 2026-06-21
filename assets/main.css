@@ -1,6 +1,6 @@
 /* App-wide styling */
 body {
-    background-color: #0f1116;
+    background-color: #2c435c;
     color: #ffffff;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     margin: 20px;
@@ -11,6 +11,12 @@ button {
     color: white;
     border: none;
     border-radius: 5px;
+    min-width: 24px;
+    min-height: 24px;
+    margin: 2px;
+}
+
+button.rebirth {
     padding: 10px 20px;
     font-size: large;
     margin: 10px;
@@ -79,6 +85,37 @@ span.progress-bar-text {
     margin: 0px;
     text-align: center;
     line-height: 28px;
+}
+
+h2 {
+    font-size: xx-large;
+    padding: 10px 0;
+}
+
+td.number {
+    text-align: center;
+}
+
+input[type=text] {
+    background-color: #1f1f1f;
+    border: rgb(118, 119, 170) 3px solid;
+    border-radius: 5px;
+    padding: 5px;
+    margin: 5px;
+}
+
+input[type=text]:hover {
+    background-color: #1f1f1f;
+    border: rgb(82, 86, 203) 3px solid;
+    border-radius: 5px;
+    padding: 5px;
+}
+
+input[type=text]:focus {
+    background-color: #1f1f1f;
+    border: rgb(50, 55, 217) 3px solid;
+    border-radius: 5px;
+    padding: 5px;
 }
 
 /*#links {
