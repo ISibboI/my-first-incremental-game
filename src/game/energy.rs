@@ -95,26 +95,19 @@ pub fn EnergyView() -> Element {
     let idle_energy = energy.idle_energy();
     let max_energy = energy.max_energy();
     let energy_progress = energy.energy_progress();
-    let energy_progress_percent = use_memo(move || format!("{:.0}%", energy_progress * 100.0));
     let max_energy_after_rebirth = energy.max_energy_after_rebirth();
     let max_energy_after_rebirth_progress = energy.max_energy_after_rebirth_progress();
-    let max_energy_after_rebirth_progress_percent =
-        use_memo(move || format!("{:.0}%", max_energy_after_rebirth_progress * 100.0));
 
     rsx! {
         div { class: "horizontal",
             div { class: "vertical",
-                span { "Energy: {current_energy}/{max_energy}; Idle: {idle_energy}" }
-                span { "Max energy after rebirth: {max_energy_after_rebirth}" }
-            }
-            div { class: "vertical",
                 ProgressBar {
                     progress: energy_progress,
-                    text: "Energy Progress: {energy_progress_percent}",
+                    text: "Energy: {current_energy}/{max_energy}; Idle: {idle_energy}",
                 }
                 ProgressBar {
                     progress: max_energy_after_rebirth_progress,
-                    text: "Max Energy After Rebirth Progress: {max_energy_after_rebirth_progress_percent}",
+                    text: "Max energy after rebirth: {max_energy_after_rebirth}",
                 }
             }
         }

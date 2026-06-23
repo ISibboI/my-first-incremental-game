@@ -7,6 +7,10 @@ use crate::{
     ui::{BigUintToU32ShiftButton, EnergyIncrementSelector, ProgressBar, U32ToBigUintShiftButton},
 };
 
+pub const BASE_ATTACK: f64 = 1.0;
+pub const BASE_DEFENSE: f64 = 1.0;
+pub const BASE_HITPOINTS: f64 = 1000.0;
+
 #[derive(Clone, Store)]
 pub struct Training {
     pub attack: f64,
@@ -35,9 +39,9 @@ pub struct Skill {
 impl Training {
     pub fn new_game() -> Self {
         Self {
-            attack: 1.0,
-            defense: 1.0,
-            hitpoints: 10.0,
+            attack: BASE_ATTACK,
+            defense: BASE_DEFENSE,
+            hitpoints: BASE_HITPOINTS,
 
             attack_skills: vec![
                 Skill::new_game("Strength", 2000, 1.0, true),
@@ -54,11 +58,11 @@ impl Training {
                 Skill::new_game("Catch arrows", 100000, 10000.0, false),
             ],
             hitpoint_skills: vec![
-                Skill::new_game("Healthy nutrition", 2000, 10.0, true),
-                Skill::new_game("Thicker skin", 10000, 100.0, false),
-                Skill::new_game("Pain endurance", 30000, 1000.0, false),
-                Skill::new_game("Sleep on bed of nails", 60000, 10000.0, false),
-                Skill::new_game("Simply don't die", 100000, 100000.0, false),
+                Skill::new_game("Healthy nutrition", 2000, 1e4, true),
+                Skill::new_game("Thicker skin", 10000, 1e5, false),
+                Skill::new_game("Pain endurance", 30000, 1e6, false),
+                Skill::new_game("Sleep on bed of nails", 60000, 1e7, false),
+                Skill::new_game("Simply don't die", 100000, 1e8, false),
             ],
         }
     }
@@ -137,32 +141,35 @@ impl<Lens> Store<Training, Lens> {
 
         // Update stats.
         self.attack().set(
-            1.0 + self
-                .attack_skills()
-                .iter()
-                .map(|skill| skill.value())
-                .sum::<f64>(),
+            BASE_ATTACK
+                + self
+                    .attack_skills()
+                    .iter()
+                    .map(|skill| skill.value())
+                    .sum::<f64>(),
         );
         self.defense().set(
-            1.0 + self
-                .defense_skills()
-                .iter()
-                .map(|skill| skill.value())
-                .sum::<f64>(),
+            BASE_DEFENSE
+                + self
+                    .defense_skills()
+                    .iter()
+                    .map(|skill| skill.value())
+                    .sum::<f64>(),
         );
         self.hitpoints().set(
-            10.0 + self
-                .hitpoint_skills()
-                .iter()
-                .map(|skill| skill.value())
-                .sum::<f64>(),
+            BASE_HITPOINTS
+                + self
+                    .hitpoint_skills()
+                    .iter()
+                    .map(|skill| skill.value())
+                    .sum::<f64>(),
         );
     }
 
     fn rebirth(&mut self) {
-        self.attack().set(1.0);
-        self.defense().set(1.0);
-        self.hitpoints().set(10.0);
+        self.attack().set(BASE_ATTACK);
+        self.defense().set(BASE_DEFENSE);
+        self.hitpoints().set(BASE_HITPOINTS);
 
         for (index, mut skill) in self
             .attack_skills()

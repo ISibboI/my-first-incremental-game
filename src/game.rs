@@ -3,11 +3,13 @@ use dioxus_stores::Store;
 use num::{BigUint, One};
 
 use crate::game::{
-    drafting::DraftingView,
+    bossfight::{Bossfight, BossfightStoreImplExt, BossfightView},
+    drafting::{Drafting, DraftingStoreImplExt, DraftingView},
     energy::{Energy, EnergyStoreImplExt, EnergyView},
     training::{Training, TrainingStoreExt, TrainingStoreImplExt, TrainingView},
 };
 
+pub mod bossfight;
 pub mod drafting;
 pub mod energy;
 pub mod training;
@@ -19,11 +21,14 @@ pub struct Game {
 
     pub energy: Energy,
     pub training: Training,
+    pub bossfight: Bossfight,
+    pub drafting: Drafting,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum MainView {
     Training,
+    Bossfight,
     Drafting,
 }
 
@@ -35,6 +40,8 @@ impl Game {
 
             energy: Energy::new_game(),
             training: Training::new_game(),
+            bossfight: Bossfight::new_game(),
+            drafting: Drafting::new_game(),
         }
     }
 }
@@ -44,11 +51,15 @@ impl<Lens> Store<Game, Lens> {
     fn update(&mut self) {
         self.energy().update();
         self.training().update();
+        self.bossfight().update();
+        self.drafting().update();
     }
 
     fn rebirth(&mut self) {
         self.energy().rebirth();
         self.training().rebirth();
+        self.bossfight().rebirth();
+        self.drafting().rebirth();
     }
 }
 
@@ -65,6 +76,9 @@ pub fn GameView() -> Element {
         MainView::Training => rsx! {
             TrainingView {}
         },
+        MainView::Bossfight => rsx! {
+            BossfightView {}
+        },
         MainView::Drafting => rsx! {
             DraftingView {}
         },
@@ -72,7 +86,9 @@ pub fn GameView() -> Element {
 
     rsx! {
         div { class: "horizontal",
-            div { class: "vertical",
+            div {
+                class: "vertical",
+                style: "width: 400px; max-width: 400px; min-width: 400px;",
                 EnergyView {}
                 span { "Attack: {attack}" }
                 span { "Defense: {defense}" }
@@ -86,13 +102,22 @@ pub fn GameView() -> Element {
                     "Rebirth"
                 }
             }
-            div { class: "vertical",
+            div {
+                class: "vertical",
+                style: "width: 200px; max-width: 200px; min-width: 200px;",
                 button {
                     onclick: move |event| {
                         event.prevent_default();
                         game.main_view().set(MainView::Training);
                     },
                     "Training"
+                }
+                button {
+                    onclick: move |event| {
+                        event.prevent_default();
+                        game.main_view().set(MainView::Bossfight);
+                    },
+                    "Bossfight"
                 }
                 button {
                     onclick: move |event| {

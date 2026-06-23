@@ -56,12 +56,13 @@ div.vertical {
     flex-direction: column;
     align-items: stretch;
     flex-grow: 1;
+    height: 100%;
 }
 
 div.horizontal {
     display: flex;
     flex-direction: row;
-    align-items: center;
+    align-items: flex-start;
     flex-grow: 1;
 }
 
