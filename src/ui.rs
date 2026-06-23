@@ -1,6 +1,8 @@
 use dioxus::prelude::*;
 use num::{BigUint, ToPrimitive};
 
+use crate::game::{energy::EnergyStoreExt, Game, GameStoreExt};
+
 #[component]
 pub fn ProgressBar(progress: ReadSignal<f64>, text: ReadSignal<String>) -> Element {
     rsx! {
@@ -71,6 +73,50 @@ pub fn U32ToBigUintShiftButton(
                 to.with_mut(|to| *to += actual_amount);
             },
             "{text}"
+        }
+    }
+}
+
+#[component]
+pub fn EnergyIncrementSelector() -> Element {
+    let game = use_context::<Store<Game>>();
+    let energy = game.energy();
+    let mut energy_increment = game.energy_increment();
+
+    let cap = use_memo(move || energy.max_energy().read().clone());
+    let idle = use_memo(move || energy.idle_energy().read().clone());
+
+    rsx! {
+        div { class: "horizontal",
+            BigUintInput { number: energy_increment }
+            button {
+                onclick: move |event| {
+                    event.prevent_default();
+                    energy_increment.set(cap());
+                },
+                "Cap"
+            }
+            button {
+                onclick: move |event| {
+                    event.prevent_default();
+                    energy_increment.set(cap() / 3u32);
+                },
+                "Cap/3"
+            }
+            button {
+                onclick: move |event| {
+                    event.prevent_default();
+                    energy_increment.set(idle());
+                },
+                "Idle"
+            }
+            button {
+                onclick: move |event| {
+                    event.prevent_default();
+                    energy_increment.set(idle() / 3u32);
+                },
+                "Idle/3"
+            }
         }
     }
 }

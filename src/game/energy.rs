@@ -24,15 +24,17 @@ pub struct Energy {
 
 impl Energy {
     pub fn new_game() -> Self {
+        let initial_max_energy = 100u8;
+
         Self {
             energy: BigUint::from(0u8),
             idle_energy: BigUint::from(0u8),
-            max_energy: BigUint::from(10u8),
+            max_energy: BigUint::from(initial_max_energy),
 
             energy_progress: 0.0,
             energy_progress_per_tick: SECONDS_PER_TICK,
 
-            max_energy_after_rebirth: BigUint::from(10u8),
+            max_energy_after_rebirth: BigUint::from(initial_max_energy),
             max_energy_after_rebirth_progress: 0.0,
             max_energy_after_rebirth_progress_increment: 1.0 / 60.0,
         }

@@ -4,7 +4,7 @@ use num::ToPrimitive;
 
 use crate::{
     game::{energy::EnergyStoreExt, Game, GameStoreExt},
-    ui::{BigUintInput, BigUintToU32ShiftButton, ProgressBar, U32ToBigUintShiftButton},
+    ui::{BigUintToU32ShiftButton, EnergyIncrementSelector, ProgressBar, U32ToBigUintShiftButton},
 };
 
 #[derive(Clone, Store)]
@@ -24,6 +24,9 @@ pub struct Skill {
     pub assigned_energy: u32,
     pub progress: u32,
     pub required_progress: u32,
+    pub required_progress_after_rebirth: f64,
+    pub required_progress_after_rebirth_factor: f64,
+    pub is_required_progress_after_rebirth_minimum_reached: bool,
     pub level: u64,
     pub value_per_level: f64,
     pub unlocked: bool,
@@ -73,6 +76,9 @@ impl Skill {
             assigned_energy: 0,
             progress: 0,
             required_progress,
+            required_progress_after_rebirth: required_progress as f64,
+            required_progress_after_rebirth_factor: 1.0 - 1e-4,
+            is_required_progress_after_rebirth_minimum_reached: required_progress == 1,
             level: 0,
             value_per_level,
             unlocked,
@@ -174,12 +180,36 @@ impl<Lens> Store<Training, Lens> {
 #[store(pub)]
 impl<Lens> Store<Skill, Lens> {
     fn update(&mut self) {
+        // Increase progress.
         let progress = *self.assigned_energy().read() + *self.progress().read();
         self.progress().set(progress);
 
-        if *self.progress().read() >= *self.required_progress().read() {
+        let required_progress = *self.required_progress().read();
+        if progress >= required_progress {
+            // Increase level.
             self.progress().set(0);
             self.level().with_mut(|level| *level += 1);
+
+            // Decrease required progress after rebirth.
+            let factor = *self.required_progress_after_rebirth_factor().read();
+            let is_required_progress_after_rebirth_minimum_reached = self
+                .required_progress_after_rebirth()
+                .with_mut(|required_progress_after_rebirth| {
+                    *required_progress_after_rebirth *= factor;
+                    let minimum_required_progress_after_rebirth =
+                        1.max((required_progress as f64 * 0.89).floor() as u32);
+                    if *required_progress_after_rebirth
+                        < minimum_required_progress_after_rebirth as f64
+                    {
+                        *required_progress_after_rebirth =
+                            minimum_required_progress_after_rebirth as f64;
+                        true
+                    } else {
+                        false
+                    }
+                });
+            self.is_required_progress_after_rebirth_minimum_reached()
+                .set(is_required_progress_after_rebirth_minimum_reached);
         }
     }
 
@@ -187,10 +217,19 @@ impl<Lens> Store<Skill, Lens> {
         self.assigned_energy().set(0);
         self.progress().set(0);
         self.level().set(0);
+
+        let required_progress = self.required_progress_after_rebirth_u32();
+        self.required_progress().set(required_progress);
+        self.required_progress_after_rebirth()
+            .set(required_progress as f64);
     }
 
     fn value(&self) -> f64 {
         *self.level().read() as f64 * *self.value_per_level().read()
+    }
+
+    fn required_progress_after_rebirth_u32(&self) -> u32 {
+        self.required_progress_after_rebirth().read().ceil() as u32
     }
 }
 
@@ -199,20 +238,18 @@ pub fn TrainingView() -> Element {
     let game = use_context::<Store<Game>>();
     let training = game.training();
 
-    let energy_increment = game.energy_increment();
-
     rsx! {
         div { class: "vertical", style: "padding: 10px;",
             h2 { "Training" }
-            div { class: "horizontal",
-                BigUintInput { number: energy_increment }
-            }
+            EnergyIncrementSelector {}
             div { class: "vertical",
                 table {
                     tr {
                         th { "Attack skill" }
                         th { "Level" }
                         th { "Assigned Energy" }
+                        th { "Cap" }
+                        th { "Cap after rebirth" }
                     }
                     for skill in training.attack_skills().iter() {
                         SkillView { skill }
@@ -221,6 +258,8 @@ pub fn TrainingView() -> Element {
                         th { "Defense skill" }
                         th { "Level" }
                         th { "Assigned Energy" }
+                        th { "Cap" }
+                        th { "Cap after rebirth" }
                     }
                     for skill in training.defense_skills().iter() {
                         SkillView { skill }
@@ -229,6 +268,8 @@ pub fn TrainingView() -> Element {
                         th { "Survival skill" }
                         th { "Level" }
                         th { "Assigned Energy" }
+                        th { "Cap" }
+                        th { "Cap after rebirth" }
                     }
                     for skill in training.hitpoint_skills().iter() {
                         SkillView { skill }
@@ -262,6 +303,10 @@ pub fn SkillView(skill: WriteStore<Skill>) -> Element {
                 }
                 td { class: "number", "{skill.level()}" }
                 td { class: "number", "{skill.assigned_energy()}" }
+                td { class: "number", "{skill.required_progress()}" }
+                td { class: if *skill.is_required_progress_after_rebirth_minimum_reached().read() { "number-capped" } else { "number" },
+                    "{skill.required_progress_after_rebirth_u32()}"
+                }
                 td {
                     BigUintToU32ShiftButton {
                         from: energy.idle_energy(),
