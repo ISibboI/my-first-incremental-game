@@ -42,9 +42,7 @@ pub fn BigUintToU32ShiftButton(
 ) -> Element {
     rsx! {
         button {
-            onclick: move |event| {
-                event.prevent_default();
-
+            onclick: move |_| {
                 let actual_amount = amount.read().clone().min(from.read().clone());
                 from.with_mut(|from| *from -= &actual_amount);
                 to.with_mut(|to| *to += actual_amount.to_u32().unwrap());
@@ -65,9 +63,7 @@ pub fn U32ToBigUintShiftButton(
 ) -> Element {
     rsx! {
         button {
-            onclick: move |event| {
-                event.prevent_default();
-
+            onclick: move |_| {
                 let actual_amount = amount.read().min(*from.read());
                 from.with_mut(|from| *from -= actual_amount);
                 to.with_mut(|to| *to += actual_amount);
@@ -90,29 +86,25 @@ pub fn EnergyIncrementSelector() -> Element {
         div { class: "horizontal",
             BigUintInput { number: energy_increment }
             button {
-                onclick: move |event| {
-                    event.prevent_default();
+                onclick: move |_| {
                     energy_increment.set(cap());
                 },
                 "Cap"
             }
             button {
-                onclick: move |event| {
-                    event.prevent_default();
+                onclick: move |_| {
                     energy_increment.set(cap() / 3u32);
                 },
                 "Cap/3"
             }
             button {
-                onclick: move |event| {
-                    event.prevent_default();
+                onclick: move |_| {
                     energy_increment.set(idle());
                 },
                 "Idle"
             }
             button {
-                onclick: move |event| {
-                    event.prevent_default();
+                onclick: move |_| {
                     energy_increment.set(idle() / 3u32);
                 },
                 "Idle/3"

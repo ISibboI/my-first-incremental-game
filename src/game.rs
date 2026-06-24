@@ -34,13 +34,16 @@ pub enum MainView {
 
 impl Game {
     pub fn new_game() -> Self {
+        let training = Training::new_game();
+        let bossfight = Bossfight::new_game(&training);
+
         Self {
             energy_increment: BigUint::one(),
             main_view: MainView::Training,
 
             energy: Energy::new_game(),
-            training: Training::new_game(),
-            bossfight: Bossfight::new_game(),
+            training,
+            bossfight,
             drafting: Drafting::new_game(),
         }
     }
@@ -51,14 +54,14 @@ impl<Lens> Store<Game, Lens> {
     fn update(&mut self) {
         self.energy().update();
         self.training().update();
-        self.bossfight().update();
+        self.bossfight().update(self.training());
         self.drafting().update();
     }
 
     fn rebirth(&mut self) {
         self.energy().rebirth();
         self.training().rebirth();
-        self.bossfight().rebirth();
+        self.bossfight().rebirth(self.training());
         self.drafting().rebirth();
     }
 }
@@ -95,8 +98,7 @@ pub fn GameView() -> Element {
                 span { "Hitpoints: {hitpoints}" }
                 button {
                     class: "rebirth",
-                    onclick: move |event| {
-                        event.prevent_default();
+                    onclick: move |_| {
                         game.rebirth();
                     },
                     "Rebirth"
@@ -106,22 +108,19 @@ pub fn GameView() -> Element {
                 class: "vertical",
                 style: "width: 200px; max-width: 200px; min-width: 200px;",
                 button {
-                    onclick: move |event| {
-                        event.prevent_default();
+                    onclick: move |_| {
                         game.main_view().set(MainView::Training);
                     },
                     "Training"
                 }
                 button {
-                    onclick: move |event| {
-                        event.prevent_default();
+                    onclick: move |_| {
                         game.main_view().set(MainView::Bossfight);
                     },
                     "Bossfight"
                 }
                 button {
-                    onclick: move |event| {
-                        event.prevent_default();
+                    onclick: move |_| {
                         game.main_view().set(MainView::Drafting);
                     },
                     "Drafting"

@@ -58,11 +58,11 @@ impl Training {
                 Skill::new_game("Catch arrows", 100000, 10000.0, false),
             ],
             hitpoint_skills: vec![
-                Skill::new_game("Healthy nutrition", 2000, 1e4, true),
-                Skill::new_game("Thicker skin", 10000, 1e5, false),
-                Skill::new_game("Pain endurance", 30000, 1e6, false),
-                Skill::new_game("Sleep on bed of nails", 60000, 1e7, false),
-                Skill::new_game("Simply don't die", 100000, 1e8, false),
+                Skill::new_game("Healthy nutrition", 2000, 1e3, true),
+                Skill::new_game("Thicker skin", 10000, 1e4, false),
+                Skill::new_game("Pain endurance", 30000, 1e5, false),
+                Skill::new_game("Sleep on bed of nails", 60000, 1e6, false),
+                Skill::new_game("Simply don't die", 100000, 1e7, false),
             ],
         }
     }
