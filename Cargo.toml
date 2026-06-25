@@ -15,6 +15,9 @@ dioxus-sdk = { version = "0.7.0", features = ["time"] }
 # Game
 num = "0.4.3"
 
+# Datetime
+jiff = { version = "0.2.29", features = ["js"] }
+
 [features]
 default = ["web"]
 web = ["dioxus/web"]

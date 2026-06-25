@@ -3,7 +3,9 @@ use dioxus_stores::Store;
 use num::{BigUint, One};
 
 use crate::game::{
-    bossfight::{Bossfight, BossfightStoreImplExt, BossfightView},
+    bossfight::{
+        Bossfight, BossfightStats, BossfightStatsStoreImplExt, BossfightStoreImplExt, BossfightView,
+    },
     drafting::{Drafting, DraftingStoreImplExt, DraftingView},
     energy::{Energy, EnergyStoreImplExt, EnergyView},
     rebirth::{Rebirth, RebirthStoreImplExt, RebirthView},
@@ -20,6 +22,8 @@ pub mod training;
 pub struct Game {
     pub energy_increment: BigUint,
     pub main_view: MainView,
+
+    pub bossfight_stats: BossfightStats,
 
     pub energy: Energy,
     pub training: Training,
@@ -42,10 +46,17 @@ impl Game {
     pub fn new_game() -> Self {
         let training = Training::new_game();
         let bossfight = Bossfight::new_game(&training);
+        let bossfight_stats = BossfightStats {
+            attack: training.attack,
+            defense: training.defense,
+            hitpoints: training.hitpoints,
+        };
 
         Self {
             energy_increment: BigUint::one(),
             main_view: MainView::Training,
+
+            bossfight_stats,
 
             energy: Energy::new_game(),
             training,
@@ -62,17 +73,23 @@ impl<Lens> Store<Game, Lens> {
     fn do_update(&mut self) {
         self.energy().do_update();
         self.training().do_update();
-        self.bossfight().do_update(self.training());
         self.drafting().do_update();
         self.rebirth().do_update();
+
+        self.bossfight_stats()
+            .do_update(self.training(), self.rebirth());
+        self.bossfight().do_update(self.bossfight_stats());
     }
 
     fn do_rebirth(&mut self) {
         self.energy().do_rebirth();
         self.training().do_rebirth();
-        self.bossfight().do_rebirth(self.training());
         self.drafting().do_rebirth();
-        self.rebirth().do_rebirth();
+        self.rebirth().do_rebirth(self.bossfight());
+
+        self.bossfight_stats()
+            .do_rebirth(self.training(), self.rebirth());
+        self.bossfight().do_rebirth(self.bossfight_stats());
     }
 }
 

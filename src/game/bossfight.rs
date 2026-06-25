@@ -3,6 +3,7 @@ use dioxus_stores::index::IndexWrite;
 
 use crate::{
     game::{
+        rebirth::{Rebirth, RebirthStoreExt},
         training::{Training, TrainingStoreExt},
         Game, GameStoreExt,
     },
@@ -28,6 +29,13 @@ pub struct Boss {
     pub attack: f64,
     pub defense: f64,
     pub max_hitpoints: f64,
+}
+
+#[derive(Clone, Store)]
+pub struct BossfightStats {
+    pub attack: f64,
+    pub defense: f64,
+    pub hitpoints: f64,
 }
 
 impl Bossfight {
@@ -79,16 +87,16 @@ type MappedBossStore<Lens> = Store<
 
 #[store(pub)]
 impl<Lens> Store<Bossfight, Lens> {
-    fn do_update<TrainingLens: Copy + Readable<Target = Training>>(
+    fn do_update<BossfightStatsLens: Copy + Readable<Target = BossfightStats>>(
         &mut self,
-        training: Store<Training, TrainingLens>,
+        bossfight_stats: Store<BossfightStats, BossfightStatsLens>,
     ) {
         if *self.is_fighting().read() {
-            let damage_dealt = (*training.attack().read()
+            let damage_dealt = (*bossfight_stats.attack().read()
                 - self.boss().map_or(0.0, |boss| *boss.defense().read()))
             .max(0.0);
             let damage_taken = (self.boss().map_or(0.0, |boss| *boss.attack().read())
-                - *training.defense().read())
+                - *bossfight_stats.defense().read())
             .max(0.0);
 
             self.current_boss_hitpoints().with_mut(|hp| {
@@ -118,7 +126,7 @@ impl<Lens> Store<Bossfight, Lens> {
             .min(max_boss_hitpoints);
         self.current_boss_hitpoints().set(current_boss_hitpoints);
 
-        let max_player_hitpoints = *training.hitpoints().read();
+        let max_player_hitpoints = *bossfight_stats.hitpoints().read();
         let current_player_hitpoints = (*self.current_player_hitpoints().read()
             + max_player_hitpoints / HITPOINTS_REGENERATION_TO_FULL_SECONDS / TICKS_PER_SECOND)
             .min(max_player_hitpoints);
@@ -126,12 +134,12 @@ impl<Lens> Store<Bossfight, Lens> {
             .set(current_player_hitpoints);
     }
 
-    fn do_rebirth<TrainingLens: Copy + Readable<Target = Training>>(
+    fn do_rebirth<BossfightStatsLens: Copy + Readable<Target = BossfightStats>>(
         &mut self,
-        training: Store<Training, TrainingLens>,
+        bossfight_stats: Store<BossfightStats, BossfightStatsLens>,
     ) {
         let max_boss_hitpoints = self.max_hitpoints().unwrap_or(0.0);
-        let max_player_hitpoints = *training.hitpoints().read();
+        let max_player_hitpoints = *bossfight_stats.hitpoints().read();
 
         self.current_boss().set(0);
         self.current_boss_hitpoints().set(max_boss_hitpoints);
@@ -162,15 +170,47 @@ impl<Lens> Store<Bossfight, Lens> {
     }
 }
 
+#[store(pub)]
+impl<Lens> Store<BossfightStats, Lens> {
+    fn do_update<
+        TrainingLens: Copy + Readable<Target = Training>,
+        RebirthLens: Copy + Readable<Target = Rebirth>,
+    >(
+        &mut self,
+        training: Store<Training, TrainingLens>,
+        rebirth: Store<Rebirth, RebirthLens>,
+    ) {
+        let attack = *training.attack().read() * *rebirth.number().read();
+        let defense = *training.defense().read() * *rebirth.number().read();
+        let hitpoints = *training.hitpoints().read() * *rebirth.number().read();
+
+        self.attack().set(attack);
+        self.defense().set(defense);
+        self.hitpoints().set(hitpoints);
+    }
+
+    fn do_rebirth<
+        TrainingLens: Copy + Readable<Target = Training>,
+        RebirthLens: Copy + Readable<Target = Rebirth>,
+    >(
+        &mut self,
+        training: Store<Training, TrainingLens>,
+        rebirth: Store<Rebirth, RebirthLens>,
+    ) {
+        self.do_update(training, rebirth);
+    }
+}
+
 #[component]
 pub fn BossfightView() -> Element {
     let game = use_context::<Store<Game>>();
-    let training = game.training();
+    let bossfight_stats = game.bossfight_stats();
     let bossfight = game.bossfight();
     let boss = bossfight.boss();
 
-    let player_hitpoints_ratio =
-        use_memo(move || bossfight.current_player_hitpoints() / *training.hitpoints().read());
+    let player_hitpoints_ratio = use_memo(move || {
+        bossfight.current_player_hitpoints() / *bossfight_stats.hitpoints().read()
+    });
 
     let boss_hitpoints_ratio = use_memo(move || {
         *bossfight.current_boss_hitpoints().read()
@@ -187,20 +227,20 @@ pub fn BossfightView() -> Element {
                 }
                 tr {
                     td { "Attack" }
-                    td { "{training.attack()}" }
-                    td { "{boss.attack()}" }
+                    td { class: "number", "{bossfight_stats.attack()}" }
+                    td { class: "number", "{boss.attack()}" }
                 }
                 tr {
                     td { "Defense" }
-                    td { "{training.defense()}" }
-                    td { "{boss.defense()}" }
+                    td { class: "number", "{bossfight_stats.defense()}" }
+                    td { class: "number", "{boss.defense()}" }
                 }
                 tr {
                     td { "Hitpoints" }
                     td {
                         ProgressBar {
                             progress: player_hitpoints_ratio,
-                            text: "{bossfight.current_player_hitpoints()}/{training.hitpoints()}",
+                            text: "{bossfight.current_player_hitpoints()}/{bossfight_stats.hitpoints()}",
                         }
                     }
                     td {
