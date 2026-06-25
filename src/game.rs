@@ -6,12 +6,14 @@ use crate::game::{
     bossfight::{Bossfight, BossfightStoreImplExt, BossfightView},
     drafting::{Drafting, DraftingStoreImplExt, DraftingView},
     energy::{Energy, EnergyStoreImplExt, EnergyView},
+    rebirth::{Rebirth, RebirthStoreImplExt, RebirthView},
     training::{Training, TrainingStoreExt, TrainingStoreImplExt, TrainingView},
 };
 
 pub mod bossfight;
 pub mod drafting;
 pub mod energy;
+pub mod rebirth;
 pub mod training;
 
 #[derive(Clone, Store)]
@@ -23,6 +25,8 @@ pub struct Game {
     pub training: Training,
     pub bossfight: Bossfight,
     pub drafting: Drafting,
+
+    pub rebirth: Rebirth,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -30,6 +34,8 @@ pub enum MainView {
     Training,
     Bossfight,
     Drafting,
+
+    Rebirth,
 }
 
 impl Game {
@@ -45,30 +51,34 @@ impl Game {
             training,
             bossfight,
             drafting: Drafting::new_game(),
+
+            rebirth: Rebirth::new_game(),
         }
     }
 }
 
 #[store(pub)]
 impl<Lens> Store<Game, Lens> {
-    fn update(&mut self) {
-        self.energy().update();
-        self.training().update();
-        self.bossfight().update(self.training());
-        self.drafting().update();
+    fn do_update(&mut self) {
+        self.energy().do_update();
+        self.training().do_update();
+        self.bossfight().do_update(self.training());
+        self.drafting().do_update();
+        self.rebirth().do_update();
     }
 
-    fn rebirth(&mut self) {
-        self.energy().rebirth();
-        self.training().rebirth();
-        self.bossfight().rebirth(self.training());
-        self.drafting().rebirth();
+    fn do_rebirth(&mut self) {
+        self.energy().do_rebirth();
+        self.training().do_rebirth();
+        self.bossfight().do_rebirth(self.training());
+        self.drafting().do_rebirth();
+        self.rebirth().do_rebirth();
     }
 }
 
 #[component]
 pub fn GameView() -> Element {
-    let mut game = use_context::<Store<Game>>();
+    let game = use_context::<Store<Game>>();
 
     let training = game.training();
     let attack = training.attack();
@@ -85,6 +95,9 @@ pub fn GameView() -> Element {
         MainView::Drafting => rsx! {
             DraftingView {}
         },
+        MainView::Rebirth => rsx! {
+            RebirthView {}
+        },
     };
 
     rsx! {
@@ -99,7 +112,7 @@ pub fn GameView() -> Element {
                 button {
                     class: "rebirth",
                     onclick: move |_| {
-                        game.rebirth();
+                        game.main_view().set(MainView::Rebirth);
                     },
                     "Rebirth"
                 }

@@ -11,9 +11,9 @@ impl Drafting {
 
 #[store(pub)]
 impl<Lens> Store<Drafting, Lens> {
-    fn update(&mut self) {}
+    fn do_update(&mut self) {}
 
-    fn rebirth(&mut self) {}
+    fn do_rebirth(&mut self) {}
 }
 
 #[component]

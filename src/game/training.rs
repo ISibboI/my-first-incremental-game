@@ -92,7 +92,7 @@ impl Skill {
 
 #[store(pub)]
 impl<Lens> Store<Training, Lens> {
-    fn update(&mut self) {
+    fn do_update(&mut self) {
         // Update skills.
         for mut skill in self
             .attack_skills()
@@ -100,7 +100,7 @@ impl<Lens> Store<Training, Lens> {
             .chain(self.defense_skills().iter())
             .chain(self.hitpoint_skills().iter())
         {
-            skill.update();
+            skill.do_update();
         }
 
         // Unlock skills.
@@ -166,7 +166,7 @@ impl<Lens> Store<Training, Lens> {
         );
     }
 
-    fn rebirth(&mut self) {
+    fn do_rebirth(&mut self) {
         self.attack().set(BASE_ATTACK);
         self.defense().set(BASE_DEFENSE);
         self.hitpoints().set(BASE_HITPOINTS);
@@ -178,7 +178,7 @@ impl<Lens> Store<Training, Lens> {
             .chain(self.defense_skills().iter().enumerate())
             .chain(self.hitpoint_skills().iter().enumerate())
         {
-            skill.rebirth();
+            skill.do_rebirth();
             skill.unlocked().set(index == 0);
         }
     }
@@ -186,7 +186,7 @@ impl<Lens> Store<Training, Lens> {
 
 #[store(pub)]
 impl<Lens> Store<Skill, Lens> {
-    fn update(&mut self) {
+    fn do_update(&mut self) {
         // Increase progress.
         let progress = *self.assigned_energy().read() + *self.progress().read();
         self.progress().set(progress);
@@ -220,7 +220,7 @@ impl<Lens> Store<Skill, Lens> {
         }
     }
 
-    fn rebirth(&mut self) {
+    fn do_rebirth(&mut self) {
         self.assigned_energy().set(0);
         self.progress().set(0);
         self.level().set(0);

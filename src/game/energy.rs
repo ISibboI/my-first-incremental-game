@@ -43,7 +43,7 @@ impl Energy {
 
 #[store(pub)]
 impl<Lens> Store<Energy, Lens> {
-    fn update(&mut self) {
+    fn do_update(&mut self) {
         // Increase energy progress.
         let energy_progress =
             *self.energy_progress().read() + *self.energy_progress_per_tick().read();
@@ -74,7 +74,7 @@ impl<Lens> Store<Energy, Lens> {
         }
     }
 
-    fn rebirth(&mut self) {
+    fn do_rebirth(&mut self) {
         self.energy().set(0u8.into());
         self.idle_energy().set(0u8.into());
         let max_energy_after_rebirth = self.max_energy_after_rebirth().read().clone();

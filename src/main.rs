@@ -24,7 +24,7 @@ fn main() {
 fn App() -> Element {
     let mut game = use_store(Game::new_game);
     use_context_provider(move || game);
-    use_interval(TICK_RATE, move |()| game.update());
+    use_interval(TICK_RATE, move |()| game.do_update());
 
     rsx! {
         document::Link { rel: "icon", href: FAVICON }

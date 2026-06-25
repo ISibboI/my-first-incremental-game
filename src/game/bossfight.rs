@@ -79,7 +79,7 @@ type MappedBossStore<Lens> = Store<
 
 #[store(pub)]
 impl<Lens> Store<Bossfight, Lens> {
-    fn update<TrainingLens: Copy + Readable<Target = Training>>(
+    fn do_update<TrainingLens: Copy + Readable<Target = Training>>(
         &mut self,
         training: Store<Training, TrainingLens>,
     ) {
@@ -126,7 +126,7 @@ impl<Lens> Store<Bossfight, Lens> {
             .set(current_player_hitpoints);
     }
 
-    fn rebirth<TrainingLens: Copy + Readable<Target = Training>>(
+    fn do_rebirth<TrainingLens: Copy + Readable<Target = Training>>(
         &mut self,
         training: Store<Training, TrainingLens>,
     ) {
