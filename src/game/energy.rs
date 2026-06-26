@@ -98,6 +98,8 @@ pub fn EnergyView() -> Element {
     let max_energy_after_rebirth = energy.max_energy_after_rebirth();
     let max_energy_after_rebirth_progress = energy.max_energy_after_rebirth_progress();
 
+    // let energy_progress_text = use_memo(move || {});
+
     rsx! {
         div { class: "horizontal",
             div { class: "vertical",

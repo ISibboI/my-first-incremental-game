@@ -2,14 +2,18 @@ use dioxus::prelude::*;
 use dioxus_stores::Store;
 use num::{BigUint, One};
 
-use crate::game::{
-    bossfight::{
-        Bossfight, BossfightStats, BossfightStatsStoreImplExt, BossfightStoreImplExt, BossfightView,
+use crate::{
+    game::{
+        bossfight::{
+            Bossfight, BossfightStats, BossfightStatsStoreImplExt, BossfightStoreImplExt,
+            BossfightView,
+        },
+        drafting::{Drafting, DraftingStoreImplExt, DraftingView},
+        energy::{Energy, EnergyStoreImplExt, EnergyView},
+        rebirth::{Rebirth, RebirthStoreImplExt, RebirthView},
+        training::{Training, TrainingStoreExt, TrainingStoreImplExt, TrainingView},
     },
-    drafting::{Drafting, DraftingStoreImplExt, DraftingView},
-    energy::{Energy, EnergyStoreImplExt, EnergyView},
-    rebirth::{Rebirth, RebirthStoreImplExt, RebirthView},
-    training::{Training, TrainingStoreExt, TrainingStoreImplExt, TrainingView},
+    ui::number_format::F64,
 };
 
 pub mod bossfight;
@@ -123,9 +127,18 @@ pub fn GameView() -> Element {
                 class: "vertical",
                 style: "width: 400px; max-width: 400px; min-width: 400px;",
                 EnergyView {}
-                span { "Attack: {attack}" }
-                span { "Defense: {defense}" }
-                span { "Hitpoints: {hitpoints}" }
+                span {
+                    "Attack: "
+                    F64 { number: attack }
+                }
+                span {
+                    "Defense: "
+                    F64 { number: defense }
+                }
+                span {
+                    "Hitpoints: "
+                    F64 { number: hitpoints }
+                }
                 button {
                     class: "rebirth",
                     onclick: move |_| {

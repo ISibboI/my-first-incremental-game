@@ -1,9 +1,12 @@
 use dioxus::prelude::*;
 use jiff::Zoned;
 
-use crate::game::{
-    bossfight::{Bossfight, BossfightStoreExt},
-    Game, GameStoreExt, GameStoreImplExt, MainView,
+use crate::{
+    game::{
+        bossfight::{Bossfight, BossfightStoreExt},
+        Game, GameStoreExt, GameStoreImplExt, MainView,
+    },
+    ui::number_format::F64,
 };
 
 #[derive(Clone, Store)]
@@ -100,15 +103,24 @@ pub fn RebirthView() -> Element {
             table {
                 tr {
                     td { "Boss factor" }
-                    td { "2^{bossfight.current_boss()} = {rebirth.boss_factor(bossfight)}" }
+                    td {
+                        "2^{bossfight.current_boss()} = "
+                        F64 { number: rebirth.boss_factor(bossfight) }
+                    }
                 }
                 tr {
                     td { "Time factor" }
-                    td { "{rebirth.time_factor()}" }
+                    td {
+                        F64 { number: rebirth.time_factor() }
+                    }
                 }
                 tr {
                     td { "Number change" }
-                    td { "{rebirth.number()} -> {rebirth.rebirth_number(bossfight)}" }
+                    td {
+                        F64 { number: rebirth.number() }
+                        " -> "
+                        F64 { number: rebirth.rebirth_number(bossfight) }
+                    }
                 }
             }
             button {

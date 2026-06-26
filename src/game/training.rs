@@ -4,7 +4,10 @@ use num::ToPrimitive;
 
 use crate::{
     game::{energy::EnergyStoreExt, Game, GameStoreExt},
-    ui::{BigUintToU32ShiftButton, EnergyIncrementSelector, ProgressBar, U32ToBigUintShiftButton},
+    ui::{
+        number_format::{U32, U64},
+        BigUintToU32ShiftButton, EnergyIncrementSelector, ProgressBar, U32ToBigUintShiftButton,
+    },
 };
 
 pub const BASE_ATTACK: f64 = 1.0;
@@ -308,11 +311,17 @@ pub fn SkillView(skill: WriteStore<Skill>) -> Element {
                 td {
                     ProgressBar { progress, text: skill.name() }
                 }
-                td { class: "number", "{skill.level()}" }
-                td { class: "number", "{skill.assigned_energy()}" }
-                td { class: "number", "{skill.required_progress()}" }
+                td { class: "number",
+                    U64 { number: skill.level() }
+                }
+                td { class: "number",
+                    U32 { number: skill.assigned_energy() }
+                }
+                td { class: "number",
+                    U32 { number: skill.required_progress() }
+                }
                 td { class: if *skill.is_required_progress_after_rebirth_minimum_reached().read() { "number-capped" } else { "number" },
-                    "{skill.required_progress_after_rebirth_u32()}"
+                    U32 { number: skill.required_progress_after_rebirth_u32() }
                 }
                 td {
                     BigUintToU32ShiftButton {

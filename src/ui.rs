@@ -3,6 +3,8 @@ use num::{BigUint, ToPrimitive};
 
 use crate::game::{energy::EnergyStoreExt, Game, GameStoreExt};
 
+pub mod number_format;
+
 #[component]
 pub fn ProgressBar(progress: ReadSignal<f64>, text: ReadSignal<String>) -> Element {
     rsx! {
