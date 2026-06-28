@@ -105,7 +105,10 @@ pub fn RebirthView() -> Element {
                     td { "Boss factor" }
                     td {
                         "2^{bossfight.current_boss()} = "
-                        F64 { number: rebirth.boss_factor(bossfight) }
+                        F64 {
+                            number: rebirth.boss_factor(bossfight),
+                            format_as_integer: true,
+                        }
                     }
                 }
                 tr {
