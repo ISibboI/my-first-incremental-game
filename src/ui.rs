@@ -6,14 +6,14 @@ use crate::game::{energy::EnergyStoreExt, Game, GameStoreExt};
 pub mod number_format;
 
 #[component]
-pub fn ProgressBar(progress: ReadSignal<f64>, text: ReadSignal<String>) -> Element {
+pub fn ProgressBar(progress: ReadSignal<f64>, children: Element) -> Element {
     rsx! {
         div { class: "progress-bar",
             div {
                 class: "progress-bar-fill",
                 style: format!("width: {}%;", *progress.read() * 100.0),
             }
-            span { class: "progress-bar-text", "{text}" }
+            span { class: "progress-bar-text", {children} }
         }
     }
 }

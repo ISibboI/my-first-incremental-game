@@ -5,15 +5,15 @@ use num::{BigUint, One};
 use crate::{
     game::{
         bossfight::{
-            Bossfight, BossfightStats, BossfightStatsStoreImplExt, BossfightStoreImplExt,
-            BossfightView,
+            Bossfight, BossfightStats, BossfightStatsStoreExt, BossfightStatsStoreImplExt,
+            BossfightStoreExt, BossfightStoreImplExt, BossfightView,
         },
         drafting::{Drafting, DraftingStoreImplExt, DraftingView},
         energy::{Energy, EnergyStoreImplExt, EnergyView},
         rebirth::{Rebirth, RebirthStoreImplExt, RebirthView},
         training::{Training, TrainingStoreExt, TrainingStoreImplExt, TrainingView},
     },
-    ui::number_format::F64,
+    ui::{number_format::F64, ProgressBar},
 };
 
 pub mod bossfight;
@@ -100,10 +100,16 @@ impl<Lens> Store<Game, Lens> {
 #[component]
 pub fn GameView() -> Element {
     let game = use_context::<Store<Game>>();
+    let bossfight = game.bossfight();
+    let bossfight_stats = game.bossfight_stats();
 
     let training = game.training();
     let attack = training.attack();
     let defense = training.defense();
+
+    let player_hitpoints_ratio = use_memo(move || {
+        bossfight.current_player_hitpoints() / *bossfight_stats.hitpoints().read()
+    });
     let hitpoints = training.hitpoints();
 
     let main_view = match *game.main_view().read() {
@@ -129,15 +135,20 @@ pub fn GameView() -> Element {
                 EnergyView {}
                 span {
                     "Attack: "
-                    F64 { number: attack }
+                    F64 { number: attack, format_as_integer: true }
                 }
                 span {
                     "Defense: "
-                    F64 { number: defense }
+                    F64 { number: defense, format_as_integer: true }
                 }
-                span {
+                ProgressBar { progress: player_hitpoints_ratio,
                     "Hitpoints: "
-                    F64 { number: hitpoints }
+                    F64 {
+                        number: bossfight.current_player_hitpoints(),
+                        format_as_integer: true,
+                    }
+                    "/"
+                    F64 { number: hitpoints, format_as_integer: true }
                 }
                 button {
                     class: "rebirth",

@@ -12,6 +12,8 @@ dioxus = { version = "0.7.9", features = [] }
 dioxus-stores = { version = "0.7.9" }
 dioxus-sdk = { version = "0.7.0", features = ["time"] }
 
+thousands = "0.2.0"
+
 # Game
 num = "0.4.3"
 

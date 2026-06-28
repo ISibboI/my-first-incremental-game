@@ -309,7 +309,7 @@ pub fn SkillView(skill: WriteStore<Skill>) -> Element {
         if *skill.unlocked().read() {
             tr {
                 td {
-                    ProgressBar { progress, text: skill.name() }
+                    ProgressBar { progress, {skill.name()} }
                 }
                 td { class: "number",
                     U64 { number: skill.level() }
@@ -343,7 +343,7 @@ pub fn SkillView(skill: WriteStore<Skill>) -> Element {
         } else {
             tr {
                 td {
-                    ProgressBar { progress: 0.0, text: "<Locked>" }
+                    ProgressBar { progress: 0.0, "<Locked>" }
                 }
             }
         }

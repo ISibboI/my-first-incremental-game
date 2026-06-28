@@ -7,11 +7,11 @@ use crate::{
         training::{Training, TrainingStoreExt},
         Game, GameStoreExt,
     },
-    ui::ProgressBar,
+    ui::{number_format::F64, ProgressBar},
     TICKS_PER_SECOND,
 };
 
-const HITPOINTS_REGENERATION_TO_FULL_SECONDS: f64 = 60.0;
+const HITPOINTS_REGENERATION_TO_FULL_SECONDS: f64 = 120.0;
 
 #[derive(Clone, Store)]
 pub struct Bossfight {
@@ -92,6 +92,7 @@ impl<Lens> Store<Bossfight, Lens> {
         bossfight_stats: Store<BossfightStats, BossfightStatsLens>,
     ) {
         if *self.is_fighting().read() {
+            // Deal damage to each other.
             let damage_dealt = (*bossfight_stats.attack().read()
                 - self.boss().map_or(0.0, |boss| *boss.defense().read()))
             .max(0.0);
@@ -108,6 +109,7 @@ impl<Lens> Store<Bossfight, Lens> {
                 *hp = hp.max(0.0);
             });
 
+            // Check for Win and defeat conditions.
             if *self.current_boss_hitpoints().read() <= 0.0 {
                 self.current_boss().with_mut(|boss| *boss += 1);
                 self.current_boss_hitpoints()
@@ -120,6 +122,7 @@ impl<Lens> Store<Bossfight, Lens> {
             }
         }
 
+        // Automatically regenerate hitpoints over time.
         let max_boss_hitpoints = self.boss().map_or(0.0, |boss| *boss.max_hitpoints().read());
         let current_boss_hitpoints = (*self.current_boss_hitpoints().read()
             + max_boss_hitpoints / HITPOINTS_REGENERATION_TO_FULL_SECONDS / TICKS_PER_SECOND)
@@ -227,26 +230,54 @@ pub fn BossfightView() -> Element {
                 }
                 tr {
                     td { "Attack" }
-                    td { class: "number", "{bossfight_stats.attack()}" }
-                    td { class: "number", "{boss.attack()}" }
+                    td { class: "number",
+                        F64 {
+                            number: bossfight_stats.attack(),
+                            format_as_integer: true,
+                        }
+                    }
+                    td { class: "number",
+                        F64 { number: boss.attack(), format_as_integer: true }
+                    }
                 }
                 tr {
                     td { "Defense" }
-                    td { class: "number", "{bossfight_stats.defense()}" }
-                    td { class: "number", "{boss.defense()}" }
+                    td { class: "number",
+                        F64 {
+                            number: bossfight_stats.defense(),
+                            format_as_integer: true,
+                        }
+                    }
+                    td { class: "number",
+                        F64 { number: boss.defense(), format_as_integer: true }
+                    }
                 }
                 tr {
                     td { "Hitpoints" }
                     td {
-                        ProgressBar {
-                            progress: player_hitpoints_ratio,
-                            text: "{bossfight.current_player_hitpoints()}/{bossfight_stats.hitpoints()}",
+                        ProgressBar { progress: player_hitpoints_ratio,
+                            F64 {
+                                number: bossfight.current_player_hitpoints(),
+                                format_as_integer: true,
+                            }
+                            "/"
+                            F64 {
+                                number: bossfight_stats.hitpoints(),
+                                format_as_integer: true,
+                            }
                         }
                     }
                     td {
-                        ProgressBar {
-                            progress: boss_hitpoints_ratio,
-                            text: "{bossfight.current_boss_hitpoints()}/{boss.max_hitpoints()}",
+                        ProgressBar { progress: boss_hitpoints_ratio,
+                            F64 {
+                                number: bossfight.current_boss_hitpoints(),
+                                format_as_integer: true,
+                            }
+                            "/"
+                            F64 {
+                                number: boss.max_hitpoints(),
+                                format_as_integer: true,
+                            }
                         }
                     }
                 }

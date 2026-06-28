@@ -4,7 +4,7 @@ use num::BigUint;
 
 use crate::{
     game::{Game, GameStoreExt},
-    ui::ProgressBar,
+    ui::{number_format::FormatBigUint, ProgressBar},
     SECONDS_PER_TICK,
 };
 
@@ -98,18 +98,21 @@ pub fn EnergyView() -> Element {
     let max_energy_after_rebirth = energy.max_energy_after_rebirth();
     let max_energy_after_rebirth_progress = energy.max_energy_after_rebirth_progress();
 
-    // let energy_progress_text = use_memo(move || {});
-
     rsx! {
         div { class: "horizontal",
             div { class: "vertical",
-                ProgressBar {
-                    progress: energy_progress,
-                    text: "Energy: {current_energy}/{max_energy}; Idle: {idle_energy}",
+                ProgressBar { progress: energy_progress,
+                    "Energy: "
+                    FormatBigUint { number: current_energy }
+                    "/"
+                    FormatBigUint { number: max_energy }
+                    "; Idle: "
+                    FormatBigUint { number: idle_energy }
+
                 }
-                ProgressBar {
-                    progress: max_energy_after_rebirth_progress,
-                    text: "Max energy after rebirth: {max_energy_after_rebirth}",
+                ProgressBar { progress: max_energy_after_rebirth_progress,
+                    "Max energy after rebirth: "
+                    FormatBigUint { number: max_energy_after_rebirth }
                 }
             }
         }
