@@ -141,10 +141,10 @@ impl<Lens> Store<Bossfight, Lens> {
         &mut self,
         bossfight_stats: Store<BossfightStats, BossfightStatsLens>,
     ) {
+        self.current_boss().set(0);
         let max_boss_hitpoints = self.max_hitpoints().unwrap_or(0.0);
         let max_player_hitpoints = *bossfight_stats.hitpoints().read();
 
-        self.current_boss().set(0);
         self.current_boss_hitpoints().set(max_boss_hitpoints);
         self.current_player_hitpoints().set(max_player_hitpoints);
         self.is_fighting().set(false);
