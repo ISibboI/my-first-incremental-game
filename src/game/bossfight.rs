@@ -1,5 +1,9 @@
+use std::sync::LazyLock;
+
 use dioxus::prelude::*;
 use dioxus_stores::index::IndexWrite;
+use regex::Regex;
+use serde::Deserialize;
 
 use crate::{
     game::{
@@ -12,6 +16,8 @@ use crate::{
 };
 
 const HITPOINTS_REGENERATION_TO_FULL_SECONDS: f64 = 120.0;
+static BOSS_DEFINITIONS: &str =
+    include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/data/bosses.toml"));
 
 #[derive(Clone, Store)]
 pub struct Bossfight {
@@ -26,9 +32,22 @@ pub struct Bossfight {
 #[derive(Clone, Store)]
 pub struct Boss {
     pub name: String,
+    pub story: Vec<String>,
     pub attack: f64,
     pub defense: f64,
     pub max_hitpoints: f64,
+}
+
+#[derive(Deserialize)]
+pub struct BossDefinitions {
+    #[serde(alias = "boss")]
+    pub bosses: Vec<BossDefinition>,
+}
+#[derive(Clone, Store, Deserialize)]
+pub struct BossDefinition {
+    pub name: String,
+    pub story: String,
+    pub power: f64,
 }
 
 #[derive(Clone, Store)]
@@ -39,14 +58,12 @@ pub struct BossfightStats {
 }
 
 impl Bossfight {
-    pub fn new_game(training: &Training) -> Self {
-        let bosses: Vec<_> = ["A flea", "A rat", "A wolf", "A bear", "A dragon"]
+    pub fn new_game(bossfight_stats: &BossfightStats) -> Self {
+        let boss_definitions: BossDefinitions = toml::from_str(BOSS_DEFINITIONS).unwrap();
+        let bosses: Vec<Boss> = boss_definitions
+            .bosses
             .into_iter()
-            .enumerate()
-            .map(|(level, name)| {
-                let factor = 10.0f64.powi(level.try_into().unwrap());
-                Boss::new(name, 2.0 * factor, 1.0 * factor, 1e3 * factor)
-            })
+            .map(Into::into)
             .collect();
         let current_boss_hitpoints = bosses.first().map_or(0.0, |boss| boss.max_hitpoints);
 
@@ -55,19 +72,29 @@ impl Bossfight {
 
             current_boss: 0,
             current_boss_hitpoints,
-            current_player_hitpoints: training.hitpoints,
+            current_player_hitpoints: bossfight_stats.hitpoints,
             is_fighting: false,
         }
     }
 }
 
-impl Boss {
-    pub fn new(name: impl ToString, attack: f64, defense: f64, max_hitpoints: f64) -> Self {
+impl From<BossDefinition> for Boss {
+    fn from(BossDefinition { name, story, power }: BossDefinition) -> Self {
+        static STORY_LINEBREAK_REGEX: LazyLock<Regex> =
+            LazyLock::new(|| Regex::new(r"\n\s*\n").unwrap());
+        let story = STORY_LINEBREAK_REGEX
+            .split(&story)
+            .map(str::trim)
+            .filter(|paragraph| !paragraph.is_empty())
+            .map(ToString::to_string)
+            .collect();
+
         Self {
-            name: name.to_string(),
-            attack,
-            defense,
-            max_hitpoints,
+            name,
+            story,
+            attack: power * 2.0,
+            defense: power,
+            max_hitpoints: power * 1e3,
         }
     }
 }
@@ -292,6 +319,9 @@ pub fn BossfightView() -> Element {
                     "Fight"
                 }
             }
+            for paragraph in boss.story().iter() {
+                p { {paragraph} }
+            }
         }
     } else {
         rsx! {
@@ -304,5 +334,21 @@ pub fn BossfightView() -> Element {
             h2 { "Bossfight" }
             {boss_view}
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::game::bossfight::{Bossfight, BossfightStats};
+
+    #[test]
+    fn test_bossfight_deserialization() {
+        let bossfight_stats = BossfightStats {
+            attack: 2.0,
+            defense: 1.0,
+            hitpoints: 1e3,
+        };
+        let bossfight = Bossfight::new_game(&bossfight_stats);
+        assert!(!bossfight.bosses.is_empty());
     }
 }

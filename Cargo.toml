@@ -20,6 +20,11 @@ num = "0.4.3"
 # Datetime
 jiff = { version = "0.2.29", features = ["js"] }
 
+# Serde
+serde = { version = "1.0.228", features = ["derive"] }
+toml = "1.1.2+spec-1.1.0"
+regex = "1.12.4"
+
 [features]
 default = ["web"]
 web = ["dioxus/web"]

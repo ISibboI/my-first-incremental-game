@@ -1,0 +1,26 @@
+[[boss]]
+name = "A flea"
+story = """Abc.
+
+Def."""
+power = 1e0
+
+[[boss]]
+name = "A rat"
+story = "A small rodent that scurries around."
+power = 1e1
+
+[[boss]]
+name = "A wolf"
+story = "A fierce predator that hunts in packs."
+power = 1e2
+
+[[boss]]
+name = "A bear"
+story = "A massive and powerful creature."
+power = 1e3
+
+[[boss]]
+name = "A dragon"
+story = "A legendary beast with fire breath."
+power = 1e4

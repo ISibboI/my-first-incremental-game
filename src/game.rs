@@ -49,12 +49,12 @@ pub enum MainView {
 impl Game {
     pub fn new_game() -> Self {
         let training = Training::new_game();
-        let bossfight = Bossfight::new_game(&training);
         let bossfight_stats = BossfightStats {
             attack: training.attack,
             defense: training.defense,
             hitpoints: training.hitpoints,
         };
+        let bossfight = Bossfight::new_game(&bossfight_stats);
 
         Self {
             energy_increment: BigUint::one(),
