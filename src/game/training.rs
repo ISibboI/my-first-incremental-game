@@ -232,6 +232,8 @@ impl<Lens> Store<Skill, Lens> {
         self.required_progress().set(required_progress);
         self.required_progress_after_rebirth()
             .set(required_progress as f64);
+        self.is_required_progress_after_rebirth_minimum_reached()
+            .set(required_progress == 1);
     }
 
     fn value(&self) -> f64 {

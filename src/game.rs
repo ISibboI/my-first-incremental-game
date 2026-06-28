@@ -11,7 +11,7 @@ use crate::{
         drafting::{Drafting, DraftingStoreImplExt, DraftingView},
         energy::{Energy, EnergyStoreImplExt, EnergyView},
         rebirth::{Rebirth, RebirthStoreImplExt, RebirthView},
-        training::{Training, TrainingStoreExt, TrainingStoreImplExt, TrainingView},
+        training::{Training, TrainingStoreImplExt, TrainingView},
     },
     ui::{number_format::F64, ProgressBar},
 };
@@ -103,14 +103,13 @@ pub fn GameView() -> Element {
     let bossfight = game.bossfight();
     let bossfight_stats = game.bossfight_stats();
 
-    let training = game.training();
-    let attack = training.attack();
-    let defense = training.defense();
+    let attack = bossfight_stats.attack();
+    let defense = bossfight_stats.defense();
 
     let player_hitpoints_ratio = use_memo(move || {
         bossfight.current_player_hitpoints() / *bossfight_stats.hitpoints().read()
     });
-    let hitpoints = training.hitpoints();
+    let hitpoints = bossfight_stats.hitpoints();
 
     let main_view = match *game.main_view().read() {
         MainView::Training => rsx! {
