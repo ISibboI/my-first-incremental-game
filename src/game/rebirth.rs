@@ -39,6 +39,8 @@ impl<Lens> Store<Rebirth, Lens> {
     ) {
         let number = self.rebirth_number(bossfight);
         self.number().set(number);
+
+        self.last_rebirth_timestamp().set(Zoned::now());
     }
 
     fn boss_factor<BossfightLens: Copy + Readable<Target = Bossfight>>(
