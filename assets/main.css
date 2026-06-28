@@ -126,6 +126,10 @@ input[type=text]:focus {
     padding: 5px;
 }
 
+p.boss-unlock {
+    font-weight: bold;
+}
+
 /*#links {
     width: 400px;
     text-align: left;

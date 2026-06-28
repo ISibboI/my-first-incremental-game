@@ -32,6 +32,7 @@ pub struct Bossfight {
 #[derive(Clone, Store)]
 pub struct Boss {
     pub name: String,
+    pub unlocks: Vec<String>,
     pub story: Vec<String>,
     pub attack: f64,
     pub defense: f64,
@@ -46,6 +47,7 @@ pub struct BossDefinitions {
 #[derive(Clone, Store, Deserialize)]
 pub struct BossDefinition {
     pub name: String,
+    pub unlocks: Option<String>,
     pub story: String,
     pub power: f64,
 }
@@ -79,7 +81,14 @@ impl Bossfight {
 }
 
 impl From<BossDefinition> for Boss {
-    fn from(BossDefinition { name, story, power }: BossDefinition) -> Self {
+    fn from(
+        BossDefinition {
+            name,
+            unlocks,
+            story,
+            power,
+        }: BossDefinition,
+    ) -> Self {
         static STORY_LINEBREAK_REGEX: LazyLock<Regex> =
             LazyLock::new(|| Regex::new(r"\n\s*\n").unwrap());
         let story = STORY_LINEBREAK_REGEX
@@ -88,9 +97,16 @@ impl From<BossDefinition> for Boss {
             .filter(|paragraph| !paragraph.is_empty())
             .map(ToString::to_string)
             .collect();
+        let unlocks = STORY_LINEBREAK_REGEX
+            .split(unlocks.as_deref().unwrap_or(""))
+            .map(str::trim)
+            .filter(|paragraph| !paragraph.is_empty())
+            .map(ToString::to_string)
+            .collect();
 
         Self {
             name,
+            unlocks,
             story,
             attack: power * 2.0,
             defense: power,
@@ -318,6 +334,9 @@ pub fn BossfightView() -> Element {
                 } else {
                     "Fight"
                 }
+            }
+            for paragraph in boss.unlocks().iter() {
+                p { class: "boss-unlock", "({paragraph})" }
             }
             for paragraph in boss.story().iter() {
                 p { {paragraph} }

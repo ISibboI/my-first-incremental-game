@@ -1,26 +1,108 @@
 [[boss]]
-name = "A flea"
-story = """Abc.
+name = "The Wall"
+story = """
+A you sleep peacefully in your warm and comfortable bed, you are suddenly woken up by a booming and echoing voice that sounds like a wrestling stadium announcer who is riling up the crowd for the next fight.
 
-Def."""
-power = 1e0
+Why? WHY? WHYYYY?
+
+You scream loudly as the voice manhandles you out of your comfortable sleep into a state of uncomfortable drowsiness.
+You cover your ears with your hands.
+
+Fucking neighbours!
+
+You start hammering against the wall next to you.
+"""
+power = 3e0
 
 [[boss]]
-name = "A rat"
-story = "A small rodent that scurries around."
+name = "Your Broken Alarm Clock"
+story = """
+The wall is unimpressed by your efforts.
+Your fist is not happy about what you just did.
+
+You check your alarm clock what time it is.
+9:00.
+
+FUCK
+
+You are late for work AGAIN!
+You take the obviously broken alarm clock and smash it against the wall.
+"""
 power = 1e1
 
 [[boss]]
-name = "A wolf"
-story = "A fierce predator that hunts in packs."
+name = "A Pair of Tangled Flip-Flops"
+story = """
+As the alarm clock lies broken in front of you, you finally start parsing what the voice is saying:
+
+"Dear earthlings, we come in peace.
+Your planet has been selected for the empires' resource exploitation program.
+Congratulations, you are first in line in ensuring the prosperity of the empire!"
+
+What the hell?
+Is the neighbour watching some stupid sci-fi show again?
+
+"According to the intergalactic statutes of proper diplomacy, we are required to rescue at least one specimen from earth.
+In order to maximise profits, we will rescue exactly one of you.
+To further aid our financial gains, the human rescued will be chosen by an entertaining dungeon crawl.
+The last human standing survives!"
+
+What is this supposed to be?
+Wha.. 
+
+Suddenly the whole building starts shaking, and you hear a loud rumble.
+
+"Your first task is to find an entrance into the dungeon.
+The entrances have just opened.
+Good luck!"
+
+Urgh.
+What?
+
+You are still confused as you decide to get up.
+Looking down you see your flip-flops laying tangled together in a pile.
+You try to pick them apart with your feet.
+"""
+power = 3e1
+
+[[boss]]
+name = "Your Own Mess"
+unlocks = "Drafting is now unlocked. Head over there and check it out."
+story = """
+Your flip-flops finally come apart and you walk to the window.
+As you look outside you see a giant stone door that seemingly broke through the ground.
+A large neon sign "DUNGEON ENTRANCE" is blinking on top of it.
+
+What the hell?
+
+You slowly start realising that you may not need your alarm clock anymore.
+You are happy.
+
+...
+
+Until the booming voice comes back and rips you out of your moment of bliss.
+
+"Don't delay!
+You have exactly 24 hours to prepare yourself and enter the dungeon.
+After that, the dungeon doors will close and the planet's surface will be desinfected."
+
+You see a neon timer appearing next to the dungeon entrance sign:
+
+DUNGEON ENTRANCE
+23:59:53
+
+Well fuck.
+These guys are serious.
+
+You look around your room for anything that could help you in a dungeon crawl.
+"""
 power = 1e2
 
 [[boss]]
-name = "A bear"
-story = "A massive and powerful creature."
-power = 1e3
+name = "A Spider"
+story = """
+As you look around and try to make sense of what is happening, you see a black spider crawling over a pile of clothes in your clothes corner.
 
-[[boss]]
-name = "A dragon"
-story = "A legendary beast with fire breath."
-power = 1e4
+Fuck this beast, you hate spiders!
+"""
+power = 3e2
