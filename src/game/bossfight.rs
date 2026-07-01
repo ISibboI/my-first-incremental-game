@@ -40,16 +40,16 @@ pub struct Boss {
 }
 
 #[derive(Deserialize)]
-pub struct BossDefinitions {
+struct BossDefinitions {
     #[serde(alias = "boss")]
-    pub bosses: Vec<BossDefinition>,
+    bosses: Vec<BossDefinition>,
 }
 #[derive(Clone, Store, Deserialize)]
-pub struct BossDefinition {
-    pub name: String,
-    pub unlocks: Option<String>,
-    pub story: String,
-    pub power: f64,
+struct BossDefinition {
+    name: String,
+    unlocks: Option<String>,
+    story: String,
+    power: f64,
 }
 
 #[derive(Clone, Store)]

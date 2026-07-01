@@ -45,6 +45,12 @@ span {
     margin: 5px;
 }
 
+label,
+select {
+    margin: 5px;
+    height: 24px;
+}
+
 progress {
     height: 24px;
     padding: 1px;
@@ -64,6 +70,14 @@ div.horizontal {
     flex-direction: row;
     align-items: flex-start;
     flex-grow: 1;
+}
+
+div.horizontal-multirow {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    flex-grow: 1;
+    flex-wrap: wrap;
 }
 
 div.progress-bar {

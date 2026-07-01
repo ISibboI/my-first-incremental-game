@@ -1,0 +1,8 @@
+[[deck]]
+name = "Your Own Mess"
+description = "Stuff that exists inside your room. Do you remember what this was for?"
+
+[[deck.card]]
+name = "A Dirty Sock"
+description = "Don't smell it!"
+initial_level = 10
