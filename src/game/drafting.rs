@@ -6,6 +6,7 @@ use serde::Deserialize;
 use crate::{
     game::{Game, GameStoreExt},
     ui::number_format::F64,
+    ART_ASSET_FOLDER,
 };
 
 static DECK_DEFINITIONS: &str =
@@ -30,16 +31,23 @@ pub struct Drafting {
 pub struct Deck {
     pub name: String,
     pub description: String,
+    pub initial_card_level: u8,
 
-    pub cards: Vec<Card>,
+    pub cards: Vec<CardTemplate>,
 }
 
 #[derive(Clone, Store)]
 pub struct Card {
-    pub name: String,
-    pub description: String,
+    pub template: CardTemplate,
 
     pub level: u8,
+}
+
+#[derive(Clone, Store)]
+pub struct CardTemplate {
+    pub name: String,
+    pub description: String,
+    pub image_path: String,
 }
 
 #[derive(Deserialize)]
@@ -53,6 +61,8 @@ struct DeckDefinition {
     name: String,
     description: String,
 
+    initial_card_level: u8,
+
     #[serde(alias = "card")]
     cards: Vec<CardDefinition>,
 }
@@ -61,8 +71,7 @@ struct DeckDefinition {
 struct CardDefinition {
     name: String,
     description: String,
-
-    initial_level: u8,
+    image: Option<String>,
 }
 
 impl Drafting {
@@ -70,7 +79,8 @@ impl Drafting {
         let deck_definitions: DeckDefinitions = toml::from_str(DECK_DEFINITIONS).unwrap();
         let decks: Vec<Deck> = deck_definitions.decks.into_iter().map(Into::into).collect();
         let current_timestamp = Zoned::now();
-        let draft_cooldown = SignedDuration::from_secs(5);
+        // let draft_cooldown = SignedDuration::from_secs(5);
+        let draft_cooldown = SignedDuration::from_millis(1);
 
         Self {
             decks,
@@ -90,21 +100,27 @@ impl Drafting {
 
 impl From<DeckDefinition> for Deck {
     fn from(deck_definition: DeckDefinition) -> Self {
-        let cards: Vec<Card> = deck_definition.cards.into_iter().map(Into::into).collect();
+        let cards: Vec<CardTemplate> = deck_definition.cards.into_iter().map(Into::into).collect();
         Self {
             name: deck_definition.name,
             description: deck_definition.description,
+
+            initial_card_level: deck_definition.initial_card_level,
+
             cards,
         }
     }
 }
 
-impl From<CardDefinition> for Card {
+impl From<CardDefinition> for CardTemplate {
     fn from(card_definition: CardDefinition) -> Self {
         Self {
             name: card_definition.name,
             description: card_definition.description,
-            level: card_definition.initial_level,
+            image_path: format!(
+                "{ART_ASSET_FOLDER}/{}",
+                card_definition.image.as_deref().unwrap_or("missing.png")
+            ),
         }
     }
 }
@@ -168,7 +184,41 @@ impl<Lens> Store<Deck, Lens> {
             let distribution = Uniform::new(0, card_count).unwrap();
             rng.sample(distribution)
         });
-        self.cards().get(card_index).unwrap().read().clone()
+
+        let template = self.cards().get(card_index).unwrap().read().clone();
+        let level = *self.initial_card_level().read();
+
+        Card { template, level }
+    }
+}
+
+type MappedCardProperty<Type, Lens> = Store<
+    Type,
+    MappedMutSignal<
+        Type,
+        MappedMutSignal<
+            CardTemplate,
+            Lens,
+            for<'a> fn(&'a Card) -> &'a CardTemplate,
+            for<'a> fn(&'a mut Card) -> &'a mut CardTemplate,
+        >,
+        for<'a> fn(&'a CardTemplate) -> &'a Type,
+        for<'a> fn(&'a mut CardTemplate) -> &'a mut Type,
+    >,
+>;
+
+#[store(pub)]
+impl<Lens> Store<Card, Lens> {
+    fn name(&self) -> MappedCardProperty<String, Lens> {
+        self.template().name()
+    }
+
+    fn description(&self) -> MappedCardProperty<String, Lens> {
+        self.template().description()
+    }
+
+    fn image_path(&self) -> MappedCardProperty<String, Lens> {
+        self.template().image_path()
     }
 }
 
@@ -228,8 +278,9 @@ pub fn DraftingView() -> Element {
 pub fn CardView(card: ReadStore<Card>) -> Element {
     rsx! {
         div { class: "card",
-            span { class: "card-title", "{card.name()} Level {card.level()}" }
-            p { class: "card-description", {card.description()} }
+            span { class: "card-title", "{card.template().name()} Level {card.level()}" }
+            img { class: "card-image", src: "{card.image_path()}" }
+            p { class: "card-description", {card.template().description()} }
         }
     }
 }

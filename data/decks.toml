@@ -1,8 +1,19 @@
 [[deck]]
-name = "Your Own Mess"
+name = "Tutorial Deck: Your Own Mess"
 description = "Stuff that exists inside your room. Do you remember what this was for?"
+initial_card_level = 20
 
 [[deck.card]]
 name = "A Dirty Sock"
 description = "Don't smell it!"
-initial_level = 10
+image = "sock.png"
+
+[[deck.card]]
+name = "A Broken Alarm Clock"
+description = "Has caused many mornings to be more hectic than they should have been."
+image = "broken-alarm-clock.png"
+
+[[deck.card]]
+name = "A Pair of Tangled Flip-Flops"
+description = "How do these always tie themselves together when you are not looking?"
+image = "tangled-flip-flops.png"

@@ -67,7 +67,6 @@ power = 3e1
 
 [[boss]]
 name = "Your Own Mess"
-unlocks = "Drafting is now unlocked. Head over there and check it out."
 story = """
 Your flip-flops finally come apart and you walk to the window.
 As you look outside you see a giant stone door that seemingly broke through the ground.
@@ -96,13 +95,14 @@ These guys are serious.
 
 You look around your room for anything that could help you in a dungeon crawl.
 """
-power = 1e2
+power = 6e1
 
 [[boss]]
 name = "A Spider"
+unlocks = "Drafting is now unlocked. Head over there and check it out."
 story = """
 As you look around and try to make sense of what is happening, you see a black spider crawling over a pile of clothes in your clothes corner.
 
 Fuck this beast, you hate spiders!
 """
-power = 3e2
+power = 1e2

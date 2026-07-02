@@ -16,6 +16,8 @@ const SECONDS_PER_TICK: f64 = TICK_RATE.as_secs_f64();
 mod game;
 mod ui;
 
+static ART_ASSET_FOLDER: Asset = asset!("assets/art");
+
 fn main() {
     dioxus::launch(App);
 }
