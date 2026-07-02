@@ -170,9 +170,25 @@ img.card-image {
     border: 2px solid black;
 }
 
+p.card-effect {
+    padding: 5px;
+    font-size: 85%;
+    font-weight: bold;
+}
+
 p.card-description {
     padding: 5px;
     font-size: 85%;
+}
+
+table.rarities {
+    margin: 5px;
+    border: 1px solid black;
+    border-radius: 5px;
+}
+
+td.rarities {
+    padding: 0 5px;
 }
 
 /*#links {

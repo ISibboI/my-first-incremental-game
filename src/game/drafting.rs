@@ -1,4 +1,4 @@
-use std::ops::Range;
+use std::ops::{Range, RangeInclusive};
 
 use dioxus::prelude::*;
 use jiff::{SignedDuration, Zoned};
@@ -14,11 +14,22 @@ use crate::{
 
 static DECK_DEFINITIONS: &str =
     include_str!(concat!(env!("CARGO_MANIFEST_DIR"), "/data/decks.toml"));
+static RARITIES: &[&str] = &[
+    "Trash",
+    "Common",
+    "Uncommon",
+    "Rare",
+    "Epic",
+    "Legendary",
+    "Mythic",
+    "Divine",
+];
 
 #[derive(Clone, Store)]
 pub struct Drafting {
     pub cards: Vec<Card>,
     pub decks: Vec<Deck>,
+    pub rarity_weight_table: Vec<f64>,
 
     pub current_timestamp: Zoned,
     pub rng: SmallRng,
@@ -40,7 +51,8 @@ pub struct Deck {
     pub initial_card_level: u8,
 
     pub cards: Range<usize>,
-    pub weighted_index: WeightedIndex<f64>,
+    #[expect(dead_code)]
+    pub rarities: RangeInclusive<u8>,
 }
 
 #[derive(Clone, Store)]
@@ -53,8 +65,21 @@ pub struct Card {
     pub rarity: u8,
 
     /// Level of zero represents a not yet found card.
+    /// Level 100 is max level.
     pub level: u8,
     pub just_drafted: bool,
+
+    pub effect: CardEffect,
+}
+
+#[derive(Clone)]
+pub enum CardEffect {
+    None,
+    /// Multiply the weight of the affected rarity by the factor.
+    RarityFactor {
+        affected_rarity: u8,
+        factor: f64,
+    },
 }
 
 #[derive(Deserialize)]
@@ -80,10 +105,18 @@ struct CardDefinition {
     description: String,
     image: Option<String>,
     rarity: u8,
+
+    affected_rarity: Option<u8>,
+    rarity_factor: Option<f64>,
 }
 
 impl Drafting {
     pub fn new_game() -> Self {
+        let rarity_weight_table: Vec<_> = (0..RARITIES.len() as i32)
+            .map(|i| 10_f64.powi(i))
+            .rev()
+            .collect();
+
         let deck_definitions: DeckDefinitions = toml::from_str(DECK_DEFINITIONS).unwrap();
 
         let mut decks = Vec::new();
@@ -98,14 +131,36 @@ impl Drafting {
             let deck_index = decks.len();
 
             let card_offset = cards.len();
+            let mut min_rarity = u8::MAX;
+            let mut max_rarity = u8::MIN;
             for CardDefinition {
                 name,
                 description,
                 image,
                 rarity,
+
+                affected_rarity,
+                rarity_factor,
             } in deck_cards
             {
                 let card_index = cards.len();
+                min_rarity = min_rarity.min(rarity);
+                max_rarity = max_rarity.max(rarity);
+
+                let effect = if let Some(affected_rarity) = affected_rarity {
+                    if let Some(factor) = rarity_factor {
+                        CardEffect::RarityFactor {
+                            affected_rarity,
+                            factor,
+                        }
+                    } else {
+                        debug_assert!(false);
+                        CardEffect::None
+                    }
+                } else {
+                    CardEffect::None
+                };
+
                 cards.push(Card {
                     name: name.titlecase(),
                     description,
@@ -114,16 +169,10 @@ impl Drafting {
                     card_index,
                     level: 0,
                     just_drafted: false,
+                    effect,
                 });
             }
             let card_limit = cards.len();
-
-            let weighted_index = WeightedIndex::new(
-                cards[card_offset..card_limit]
-                    .iter()
-                    .map(|card| 10_f64.powi(-i32::from(card.rarity))),
-            )
-            .unwrap();
 
             decks.push(Deck {
                 name: name.titlecase(),
@@ -131,7 +180,7 @@ impl Drafting {
                 deck_index,
                 initial_card_level,
                 cards: card_offset..card_limit,
-                weighted_index,
+                rarities: min_rarity..=max_rarity,
             });
         }
 
@@ -142,6 +191,7 @@ impl Drafting {
         Self {
             decks,
             cards,
+            rarity_weight_table,
 
             current_timestamp: current_timestamp.clone(),
             rng: rand::make_rng(),
@@ -151,6 +201,21 @@ impl Drafting {
             just_drafted: None,
             draft_cooldown,
             can_draft: true,
+        }
+    }
+}
+
+impl CardEffect {
+    fn scale_by_level(&self, level: u8) -> Self {
+        match self {
+            CardEffect::None => CardEffect::None,
+            CardEffect::RarityFactor {
+                affected_rarity,
+                factor,
+            } => CardEffect::RarityFactor {
+                affected_rarity: *affected_rarity,
+                factor: factor.powf(level as f64 / 100.0),
+            },
         }
     }
 }
@@ -182,10 +247,31 @@ impl<Lens> Store<Drafting, Lens> {
             return;
         };
 
+        self.recompute_rarity_weight_table();
+
         let current_timestamp = self.current_timestamp().read().clone();
         self.last_draft_timestamp().set(current_timestamp);
 
-        let card_index = self.decks().get(selected_deck).unwrap().draft(self.rng());
+        let card_range = self
+            .decks()
+            .get(selected_deck)
+            .unwrap()
+            .cards()
+            .read()
+            .clone();
+        let rarity_weight_table = self.rarity_weight_table().read().clone();
+        let weighted_index = WeightedIndex::new(
+            self.cards()
+                .iter()
+                .take(card_range.end)
+                .skip(card_range.start)
+                .map(|card| rarity_weight_table[*card.rarity().read() as usize]),
+        )
+        .unwrap();
+
+        let card_index = self.rng().with_mut(move |rng| rng.sample(&weighted_index));
+        let card_index = card_index + card_range.start;
+
         let level_increment = *self
             .decks()
             .get(selected_deck)
@@ -214,6 +300,30 @@ impl<Lens> Store<Drafting, Lens> {
             .just_drafted()
             .set(true);
         self.just_drafted().set(Some(card_index));
+
+        self.recompute_rarity_weight_table();
+    }
+
+    fn recompute_rarity_weight_table(&mut self) {
+        let mut rarity_weight_table: Vec<_> = (0..RARITIES.len() as i32)
+            .map(|i| 10_f64.powi(i))
+            .rev()
+            .collect();
+
+        for card in self.cards().iter() {
+            let level = *card.level().read();
+            let effect = card.effect().read().scale_by_level(level);
+
+            match effect {
+                CardEffect::None => {}
+                CardEffect::RarityFactor {
+                    affected_rarity,
+                    factor,
+                } => rarity_weight_table[affected_rarity as usize] *= factor,
+            }
+        }
+
+        self.rarity_weight_table().set(rarity_weight_table);
     }
 
     fn remaining_cooldown(&self) -> Option<SignedDuration> {
@@ -234,19 +344,6 @@ impl<Lens> Store<Drafting, Lens> {
     fn remaining_cooldown_seconds(&self) -> Option<f64> {
         self.remaining_cooldown()
             .map(|remaining| remaining.as_secs_f64())
-    }
-}
-
-#[store(pub)]
-impl<Lens> Store<Deck, Lens> {
-    fn draft<RngLens: Copy + Writable<Target = SmallRng>>(
-        &self,
-        rng: Store<SmallRng, RngLens>,
-    ) -> usize {
-        let mut rng = rng;
-        let weighted_index = self.weighted_index().read().clone();
-        let card_index = rng.with_mut(move |rng| rng.sample(&weighted_index));
-        card_index + self.cards().read().start
     }
 }
 
@@ -304,8 +401,34 @@ pub fn DraftingView() -> Element {
                     ""
                 }
             }
+            RaritiesView {}
             InventoryView {}
         }
+    }
+}
+
+#[component]
+fn RaritiesView() -> Element {
+    let game = use_context::<Store<Game>>();
+    let drafting = game.drafting();
+    let rarity_weight_table = drafting.rarity_weight_table();
+
+    rsx! {
+        table { class: "rarities",
+            tr { class: "rarities",
+                th { class: "rarities", "Rarity" }
+                th { class: "rarities", "Weight" }
+            }
+            for (rarity, weight) in RARITIES.iter().zip(rarity_weight_table.read().iter()) {
+                tr { class: "rarities",
+                    td { class: "rarities", "{rarity}" }
+                    td { class: "rarities",
+                        F64 { number: *weight, format_as_integer: true }
+                    }
+                }
+            }
+        }
+
     }
 }
 
@@ -375,11 +498,39 @@ fn CardView(card: ReadStore<Card>) -> Element {
         )
     });
 
+    let effect = use_memo(move || {
+        let level = *card.level().read();
+        match card.effect().read().scale_by_level(level) {
+            CardEffect::None => rsx! {},
+            CardEffect::RarityFactor {
+                affected_rarity,
+                factor,
+            } => {
+                if factor == 1.0 {
+                    rsx! {}
+                } else if factor > 1.0 {
+                    rsx! {
+                        "{RARITIES[affected_rarity as usize]} weight +"
+                        F64 { number: (factor - 1.0) * 100.0 }
+                        "%"
+                    }
+                } else {
+                    rsx! {
+                        "{RARITIES[affected_rarity as usize]} weight -"
+                        F64 { number: (1.0 - factor) * 100.0 }
+                        "%"
+                    }
+                }
+            }
+        }
+    });
+
     if *card.level().read() > 0 {
         rsx! {
             div { class: "card", style,
                 span { class: "card-title", "{card.name()} Level\u{00A0}{card.level()}" }
                 img { class: "card-image", src: image_path }
+                p { class: "card-effect", {effect} }
                 p { class: "card-description", {card.description()} }
             }
         }
@@ -388,6 +539,7 @@ fn CardView(card: ReadStore<Card>) -> Element {
             div { class: "card", style,
                 span { class: "card-title", "Locked" }
                 img { class: "card-image", src: image_path }
+                p { class: "card-effect" }
                 p { class: "card-description" }
             }
         }

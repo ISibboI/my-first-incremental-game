@@ -9,17 +9,26 @@ description = "Don't smell it!"
 image = "sock.png"
 rarity = 0
 
+affected_rarity = 0
+rarity_factor = 0.5
+
 [[deck.card]]
 name = "A Used Tissue"
 description = "Urgh."
 image = "used-tissue.png"
 rarity = 0
 
+affected_rarity = 0
+rarity_factor = 0.5
+
 [[deck.card]]
 name = "A Strand of Hair"
 description = "Hairy."
 image = "hair.png"
 rarity = 0
+
+affected_rarity = 0
+rarity_factor = 0.5
 
 [[deck.card]]
 name = "A Broken Alarm Clock"
