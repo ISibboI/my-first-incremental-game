@@ -81,7 +81,7 @@ impl<Lens> Store<Game, Lens> {
         self.rebirth().do_update();
 
         self.bossfight_stats()
-            .do_update(self.training(), self.rebirth());
+            .do_update(self.training(), self.drafting(), self.rebirth());
         self.bossfight().do_update(self.bossfight_stats());
     }
 
@@ -92,7 +92,7 @@ impl<Lens> Store<Game, Lens> {
         self.rebirth().do_rebirth(self.bossfight());
 
         self.bossfight_stats()
-            .do_rebirth(self.training(), self.rebirth());
+            .do_rebirth(self.training(), self.drafting(), self.rebirth());
         self.bossfight().do_rebirth(self.bossfight_stats());
     }
 }

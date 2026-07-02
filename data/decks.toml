@@ -36,11 +36,15 @@ description = "Has caused many mornings to be more hectic than they should have 
 image = "broken-alarm-clock.png"
 rarity = 1
 
+attack_factor = 2.0
+
 [[deck.card]]
 name = "A Pair of Tangled Flip-Flops"
 description = "How do these always tie themselves together when you are not looking?"
 image = "tangled-flip-flops.png"
 rarity = 1
+
+defense_factor = 2.0
 
 [[deck.card]]
 name = "A Wall"
@@ -48,14 +52,22 @@ description = "Luckily, your room has four of these. Oh, and there is also a flo
 image = "wall.png"
 rarity = 1
 
+hitpoints_factor = 2.0
+
 [[deck.card]]
 name = "A Crack in the Wall"
 description = "It's still crumbly."
 image = "wall-crack.png"
-rarity = 1
+rarity = 2
+
+affected_rarity = 0
+rarity_factor = 0.5
 
 [[deck.card]]
 name = "A Participant Medal"
 description = """Don't these usually at least read "Finisher"?"""
 image = "participant-medal.png"
 rarity = 2
+
+affected_rarity = 1
+rarity_factor = 0.5

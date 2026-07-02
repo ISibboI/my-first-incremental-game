@@ -39,6 +39,10 @@ pub struct Drafting {
     pub just_drafted: Option<usize>,
     pub draft_cooldown: SignedDuration,
     pub can_draft: bool,
+
+    pub attack_factor: f64,
+    pub defense_factor: f64,
+    pub hitpoints_factor: f64,
 }
 
 #[derive(Clone, Store)]
@@ -80,6 +84,15 @@ pub enum CardEffect {
         affected_rarity: u8,
         factor: f64,
     },
+    AttackFactor {
+        factor: f64,
+    },
+    DefenseFactor {
+        factor: f64,
+    },
+    HitpointsFactor {
+        factor: f64,
+    },
 }
 
 #[derive(Deserialize)]
@@ -108,6 +121,10 @@ struct CardDefinition {
 
     affected_rarity: Option<u8>,
     rarity_factor: Option<f64>,
+
+    attack_factor: Option<f64>,
+    defense_factor: Option<f64>,
+    hitpoints_factor: Option<f64>,
 }
 
 impl Drafting {
@@ -141,11 +158,28 @@ impl Drafting {
 
                 affected_rarity,
                 rarity_factor,
+
+                attack_factor,
+                defense_factor,
+                hitpoints_factor,
             } in deck_cards
             {
                 let card_index = cards.len();
                 min_rarity = min_rarity.min(rarity);
                 max_rarity = max_rarity.max(rarity);
+
+                debug_assert!(
+                    [
+                        affected_rarity.is_some(),
+                        attack_factor.is_some(),
+                        defense_factor.is_some(),
+                        hitpoints_factor.is_some()
+                    ]
+                    .into_iter()
+                    .filter(|&x| x)
+                    .count()
+                        <= 1
+                );
 
                 let effect = if let Some(affected_rarity) = affected_rarity {
                     if let Some(factor) = rarity_factor {
@@ -157,6 +191,12 @@ impl Drafting {
                         debug_assert!(false);
                         CardEffect::None
                     }
+                } else if let Some(factor) = attack_factor {
+                    CardEffect::AttackFactor { factor }
+                } else if let Some(factor) = defense_factor {
+                    CardEffect::DefenseFactor { factor }
+                } else if let Some(factor) = hitpoints_factor {
+                    CardEffect::HitpointsFactor { factor }
                 } else {
                     CardEffect::None
                 };
@@ -201,6 +241,10 @@ impl Drafting {
             just_drafted: None,
             draft_cooldown,
             can_draft: true,
+
+            attack_factor: 1.0,
+            defense_factor: 1.0,
+            hitpoints_factor: 1.0,
         }
     }
 }
@@ -214,6 +258,15 @@ impl CardEffect {
                 factor,
             } => CardEffect::RarityFactor {
                 affected_rarity: *affected_rarity,
+                factor: factor.powf(level as f64 / 100.0),
+            },
+            CardEffect::AttackFactor { factor } => CardEffect::AttackFactor {
+                factor: factor.powf(level as f64 / 100.0),
+            },
+            CardEffect::DefenseFactor { factor } => CardEffect::DefenseFactor {
+                factor: factor.powf(level as f64 / 100.0),
+            },
+            CardEffect::HitpointsFactor { factor } => CardEffect::HitpointsFactor {
                 factor: factor.powf(level as f64 / 100.0),
             },
         }
@@ -247,7 +300,7 @@ impl<Lens> Store<Drafting, Lens> {
             return;
         };
 
-        self.recompute_rarity_weight_table();
+        self.recompute_card_effects();
 
         let current_timestamp = self.current_timestamp().read().clone();
         self.last_draft_timestamp().set(current_timestamp);
@@ -301,14 +354,17 @@ impl<Lens> Store<Drafting, Lens> {
             .set(true);
         self.just_drafted().set(Some(card_index));
 
-        self.recompute_rarity_weight_table();
+        self.recompute_card_effects();
     }
 
-    fn recompute_rarity_weight_table(&mut self) {
+    fn recompute_card_effects(&mut self) {
         let mut rarity_weight_table: Vec<_> = (0..RARITIES.len() as i32)
             .map(|i| 10_f64.powi(i))
             .rev()
             .collect();
+        let mut attack_factor = 1.0;
+        let mut defense_factor = 1.0;
+        let mut hitpoints_factor = 1.0;
 
         for card in self.cards().iter() {
             let level = *card.level().read();
@@ -320,10 +376,16 @@ impl<Lens> Store<Drafting, Lens> {
                     affected_rarity,
                     factor,
                 } => rarity_weight_table[affected_rarity as usize] *= factor,
+                CardEffect::AttackFactor { factor } => attack_factor *= factor,
+                CardEffect::DefenseFactor { factor } => defense_factor *= factor,
+                CardEffect::HitpointsFactor { factor } => hitpoints_factor *= factor,
             }
         }
 
         self.rarity_weight_table().set(rarity_weight_table);
+        self.attack_factor().set(attack_factor);
+        self.defense_factor().set(defense_factor);
+        self.hitpoints_factor().set(hitpoints_factor);
     }
 
     fn remaining_cooldown(&self) -> Option<SignedDuration> {
@@ -520,6 +582,24 @@ fn CardView(card: ReadStore<Card>) -> Element {
                         F64 { number: (1.0 - factor) * 100.0 }
                         "%"
                     }
+                }
+            }
+            CardEffect::AttackFactor { factor } => {
+                rsx! {
+                    "Attack times "
+                    F64 { number: factor }
+                }
+            }
+            CardEffect::DefenseFactor { factor } => {
+                rsx! {
+                    "Defense times "
+                    F64 { number: factor }
+                }
+            }
+            CardEffect::HitpointsFactor { factor } => {
+                rsx! {
+                    "Hitpoints times "
+                    F64 { number: factor }
                 }
             }
         }

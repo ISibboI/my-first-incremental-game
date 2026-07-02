@@ -7,6 +7,7 @@ use serde::Deserialize;
 
 use crate::{
     game::{
+        drafting::{Drafting, DraftingStoreExt},
         rebirth::{Rebirth, RebirthStoreExt},
         training::{Training, TrainingStoreExt},
         Game, GameStoreExt,
@@ -220,15 +221,22 @@ impl<Lens> Store<Bossfight, Lens> {
 impl<Lens> Store<BossfightStats, Lens> {
     fn do_update<
         TrainingLens: Copy + Readable<Target = Training>,
+        DraftingLens: Copy + Readable<Target = Drafting>,
         RebirthLens: Copy + Readable<Target = Rebirth>,
     >(
         &mut self,
         training: Store<Training, TrainingLens>,
+        drafting: Store<Drafting, DraftingLens>,
         rebirth: Store<Rebirth, RebirthLens>,
     ) {
-        let attack = *training.attack().read() * *rebirth.number().read();
-        let defense = *training.defense().read() * *rebirth.number().read();
-        let hitpoints = *training.hitpoints().read() * *rebirth.number().read();
+        let attack =
+            *training.attack().read() * *drafting.attack_factor().read() * *rebirth.number().read();
+        let defense = *training.defense().read()
+            * *drafting.defense_factor().read()
+            * *rebirth.number().read();
+        let hitpoints = *training.hitpoints().read()
+            * *drafting.hitpoints_factor().read()
+            * *rebirth.number().read();
 
         self.attack().set(attack);
         self.defense().set(defense);
@@ -237,13 +245,15 @@ impl<Lens> Store<BossfightStats, Lens> {
 
     fn do_rebirth<
         TrainingLens: Copy + Readable<Target = Training>,
+        DraftingLens: Copy + Readable<Target = Drafting>,
         RebirthLens: Copy + Readable<Target = Rebirth>,
     >(
         &mut self,
         training: Store<Training, TrainingLens>,
+        drafting: Store<Drafting, DraftingLens>,
         rebirth: Store<Rebirth, RebirthLens>,
     ) {
-        self.do_update(training, rebirth);
+        self.do_update(training, drafting, rebirth);
     }
 }
 
