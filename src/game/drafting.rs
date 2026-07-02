@@ -2,6 +2,7 @@ use dioxus::prelude::*;
 use jiff::{SignedDuration, Zoned};
 use rand::{distr::Uniform, rngs::SmallRng, RngExt};
 use serde::Deserialize;
+use titlecase::Titlecase;
 
 use crate::{
     game::{Game, GameStoreExt},
@@ -48,6 +49,8 @@ pub struct CardTemplate {
     pub name: String,
     pub description: String,
     pub image_path: String,
+    #[expect(dead_code)]
+    pub rarity: u8,
 }
 
 #[derive(Deserialize)]
@@ -72,6 +75,7 @@ struct CardDefinition {
     name: String,
     description: String,
     image: Option<String>,
+    rarity: u8,
 }
 
 impl Drafting {
@@ -113,14 +117,22 @@ impl From<DeckDefinition> for Deck {
 }
 
 impl From<CardDefinition> for CardTemplate {
-    fn from(card_definition: CardDefinition) -> Self {
+    fn from(
+        CardDefinition {
+            name,
+            description,
+            image,
+            rarity,
+        }: CardDefinition,
+    ) -> Self {
         Self {
-            name: card_definition.name,
-            description: card_definition.description,
+            name: name.titlecase(),
+            description,
             image_path: format!(
                 "{ART_ASSET_FOLDER}/{}",
-                card_definition.image.as_deref().unwrap_or("missing.png")
+                image.as_deref().unwrap_or("missing.png"),
             ),
+            rarity,
         }
     }
 }
@@ -278,7 +290,7 @@ pub fn DraftingView() -> Element {
 pub fn CardView(card: ReadStore<Card>) -> Element {
     rsx! {
         div { class: "card",
-            span { class: "card-title", "{card.template().name()} Level {card.level()}" }
+            span { class: "card-title", "{card.template().name()} Level\u{00A0}{card.level()}" }
             img { class: "card-image", src: "{card.image_path()}" }
             p { class: "card-description", {card.template().description()} }
         }

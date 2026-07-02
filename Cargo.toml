@@ -13,6 +13,7 @@ dioxus-stores = { version = "0.7.9" }
 dioxus-sdk = { version = "0.7.0", features = ["time"] }
 
 thousands = "0.2.0"
+titlecase = "3.6.0"
 
 # Game
 num = "0.4.3"

@@ -7,13 +7,46 @@ initial_card_level = 20
 name = "A Dirty Sock"
 description = "Don't smell it!"
 image = "sock.png"
+rarity = 0
+
+[[deck.card]]
+name = "A Used Tissue"
+description = "Urgh."
+image = "used-tissue.png"
+rarity = 0
+
+[[deck.card]]
+name = "A Strand of Hair"
+description = "Hairy."
+image = "hair.png"
+rarity = 0
 
 [[deck.card]]
 name = "A Broken Alarm Clock"
 description = "Has caused many mornings to be more hectic than they should have been."
 image = "broken-alarm-clock.png"
+rarity = 1
 
 [[deck.card]]
 name = "A Pair of Tangled Flip-Flops"
 description = "How do these always tie themselves together when you are not looking?"
 image = "tangled-flip-flops.png"
+rarity = 1
+
+[[deck.card]]
+name = "A Wall"
+description = "Luckily, your room has four of these. Oh, and there is also a floor and ceiling."
+image = "wall.png"
+rarity = 1
+
+[[deck.card]]
+name = "A Crack in the Wall"
+description = "It's still crumbly."
+image = "wall-crack.png"
+rarity = 1
+
+[[deck.card]]
+name = "A Participant Medal"
+description = """Don't these usually at least read "Finisher"?"""
+image = "participant-medal.png"
+rarity = 2
